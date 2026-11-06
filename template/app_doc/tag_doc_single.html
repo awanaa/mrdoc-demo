@@ -1,0 +1,185 @@
+<!-- 继承自模板：app_doc/tag_doc_base.html -->
+{% extends 'app_doc/tag_doc_base.html' %}
+<!-- 引入静态文件 -->
+{% load static %}
+{% load i18n %}
+
+{% block keyword %}{{ doc.name }},{{ project.name }},{% endblock %}
+{% block description %}{{doc.pre_content | slice:"0:100"}}{% endblock %}
+{% block title %}{{ doc.name }} - {% trans "标签：" %}{{ tag.name }}{% endblock %}
+{% block custom_style %}
+{% if project.is_comment %}
+<!-- 文档评论CSS -->
+<link href="{% static 'mrtalk/Artalk.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+{% endif %}
+{% endblock %}
+
+{% block head_toolbar %}
+    {% if request.user == doc.create_user or request.user == project.create_user %}
+        <span class="btn pull-left">|</span>
+        <a class="btn pull-left" aria-label="" href="{% url 'modify_doc' doc_id=doc.id %}">
+            <i class="layui-icon layui-icon-edit"></i> <span class="layui-hide-xs">{% trans "修改" %}</span>
+        </a>
+        <a class="btn pull-left" aria-label="" href="{% url 'create_doc' %}?pid={{project.id}}" target="_blank">
+            <i class="layui-icon layui-icon-add-1"></i> <span class="layui-hide-xs">{% trans "添加" %}</span>
+        </a>
+        <a class="btn pull-left" aria-label="" href="{% url 'manage_doc' %}" target="_blank">
+            <i class="iconfont mrdoc-icon-manage"></i> <span class="layui-hide-xs">{% trans "管理" %}</span>
+        </a>
+    {% elif colla_user > 0 %}
+        <span class="btn pull-left">|</span>
+        {% if colla_user_role == 1 %}
+        <a class="btn pull-left" aria-label="" href="{% url 'modify_doc' doc_id=doc.id %}">
+            <i class="layui-icon layui-icon-edit"></i> <span class="layui-hide-xs">{% trans "修改" %}</span>
+        </a>
+        {% endif %}
+        <a class="btn pull-left" aria-label="" href="{% url 'create_doc' %}?pid={{project.id}}" target="_blank">
+            <i class="layui-icon layui-icon-add-1"></i> <span class="layui-hide-xs">{% trans "添加" %}</span>
+        </a>
+    {% endif %}
+
+{% endblock %}
+
+{% block docToc %}
+<!-- 文档目录 -->
+<div id="toc-container" class='sidebar doc-toc-hide'></div>
+{% endblock %}
+
+{% block content_head %}
+    <h1>{{ doc.name }}</h1><hr>
+{% endblock %}
+
+{% block page_content %}
+    {% if doc.editor_mode == 3 %}
+    {{ doc.content | safe }}
+    {% elif doc.editor_mode == 2 %}
+    <textarea style="display: none;">{{ doc.pre_content }}</textarea>
+    {% elif doc.editor_mode == 4 %}
+    <div id="luckysheet" style="margin:0px;padding:0px;width:100%;min-height:500px;left: 0px;top: 0px;"></div>
+    <textarea id="sheet_table_content" style="display: none;">{{ doc.pre_content }}</textarea>
+    {% else %}
+    <textarea style="display: none;">{{ doc.pre_content }}</textarea>
+    {% endif %}
+
+{% endblock %}
+
+{% block doc_bottom_block %}
+<div class="layui-row" style="margin-bottom: 10px;padding-left: 20px;">
+    {% if doc_tags.count > 0 %}
+        <i class="layui-icon layui-icon-note"></i>
+        {% for tag in doc_tags %}
+            <a href="{% url 'tag_docs' tag.tag.id %}" style="font-size: 12px;line-height: 14px;height: 16px;padding: 0 5px;margin-left: 0;">{{tag.tag.name}}</a>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="layui-row layui-col-space20" style="padding-left: 20px;">
+    <span tooltip="文档创建人">
+        <i class="layui-icon layui-icon-user"></i> {{ doc.create_user.username }}
+    </span>
+
+    <span tooltip="所属文集" >
+        <i class="layui-icon layui-icon-list"></i> <a href="{% url 'pro_index' project.id %}">{{project.name}}</a>
+    </span>
+
+    <span tooltip="文档更新时间">
+        <i class="layui-icon layui-icon-log"></i> {{ doc.modify_time }}
+    </span>
+
+    <button id="share" class="doc-bottom-btn" tooltip="转发本文档">
+        <i class="layui-icon layui-icon-share" ></i> {% trans "转发" %}
+    </button>
+
+    {% if request.user == doc.create_user or request.user.is_superuser %}
+    <button class="doc-bottom-btn" tooltip="下载文档Markdown" id="download_doc">
+        <i class="layui-icon layui-icon-download-circle"></i> {% trans "下载" %}
+    </button>
+    {% endif %}
+</div>
+
+
+{% endblock %}
+
+{% block doc_previous_next %}
+    {% load doc_filter %}
+    <div class="layui-row" style="margin-top: 10px;padding:10px;display:flex;justify-content:space-around;">
+        <!-- <hr> -->
+        <div>
+            {% if doc.id|get_doc_previous == None %}
+                <button class="layui-btn layui-btn-disabled layui-btn-sm layui-btn-radius"><i class="layui-icon layui-icon-prev "></i>{% trans "上一篇" %}</button>
+            {% else %}
+                <a href="{% url 'doc' doc.top_doc doc.id|get_doc_previous %}" class="layui-btn layui-btn-primary layui-btn-sm layui-btn-radius"><i class="layui-icon layui-icon-prev "></i>{% trans "上一篇" %}</a>
+            {% endif %}
+        </div>
+        <div>
+            {% if doc.id|get_doc_next == None %}
+                <button class="layui-btn layui-btn-disabled layui-btn-sm layui-btn-radius">{% trans "下一篇" %}<i class="layui-icon layui-icon-next"></i></button>
+            {% else %}
+                <a href="{% url 'doc' doc.top_doc doc.id|get_doc_next %}" class="layui-btn layui-btn-primary layui-btn-sm layui-btn-radius">{% trans "下一篇" %}<i class="layui-icon layui-icon-next"></i></a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block right_widget %}
+<!-- 修改文档 -->
+{% if doc.create_user == request.user %}
+    <a class="editDoc" href="{% url 'modify_doc' doc_id=doc.id %}" title="{% trans '修改文档' %}"><i class="layui-icon layui-icon-edit"></i></a>
+{% endif %}
+<!-- 目录 -->
+<div class="tocMenu" style="display: none;"><i class="iconfont mrdoc-icon-toc"></i></div>
+<!-- 分享按钮 -->
+{% if project.role == 1 and request.user == doc.create_user %}
+    <div class="shareDoc" id="shareDoc"><i class="layui-icon layui-icon-share"></i></div>
+{% endif %}
+{% endblock %}
+
+{% block custom_script %}
+<!-- 解析渲染Markdown -->
+<script>
+    var editor_mode = {{ doc.editor_mode }};
+    var pro_id = {{doc.top_doc}};
+    var doc_id = {{doc.id}};
+    initDocRender(mode=editor_mode);
+    {% if doc.editor_mode != 2 %}
+        // 图片放大显示
+        var img_options = {
+            url: 'data-original',
+            fullscreen:false,//全屏
+            rotatable:false,//旋转
+            scalable:false,//翻转
+            button:false,//关闭按钮
+            toolbar:false,
+            title:false,
+            };
+        var img_viewer = new Viewer(document.getElementById('content'), img_options);
+    {% endif %}
+
+</script>
+
+<script src="{% static 'toc/doctoc.js' %}?version={{mrdoc_version}}"></script>
+<script>
+    var layer = layui.layer;
+    var form = layui.form;
+    var is_auth = {% if request.user.is_authenticated %}true{% else %}false{% endif %};
+    // Ajax默认配置
+    $.ajaxSetup({
+        data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+    });
+    // 非小屏默认展开文档目录
+    if(window.innerWidth > 1650){
+        $(".sidebar").toggleClass("doc-toc-hide");
+    }
+    // 切换文档目录显示与否
+    $(".tocMenu").click(function() {
+        // console.log("切换文档目录显示")
+        $(".sidebar").toggleClass("doc-toc-hide");
+    });
+
+    //修改a标签链接新窗口打开
+    $('#content').on('click','a',function(e){
+        e.target.target = '_blank';
+    });
+
+</script>
+{% endblock %}

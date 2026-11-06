@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240">
+  <rect width="320" height="240" fill="#FDF6EC"/>
+  <rect x="90" y="40" width="140" height="160" rx="12" fill="#7CB9E8"/>
+  <rect x="90" y="40" width="140" height="160" rx="12" fill="none" stroke="#3E7CB1" stroke-width="4"/>
+  <circle cx="160" cy="105" r="30" fill="#F7C948"/>
+  <circle cx="150" cy="98" r="5" fill="#3B3B3B"/>
+  <circle cx="170" cy="98" r="5" fill="#3B3B3B"/>
+  <path d="M148 112 Q160 122 172 112" stroke="#3B3B3B" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <rect x="120" y="155" width="80" height="18" rx="6" fill="#F28C8C"/>
+  <text x="160" y="225" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#666">板纸书（Board Book）</text>
+</svg>

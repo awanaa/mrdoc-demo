@@ -1,0 +1,352 @@
+{% load static %}
+{% load i18n %}
+{% load project_filter %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>{{ space.name }} - {% trans "空间" %} - {% if site_name != None and site_name != '' %}{{ site_name }}{% else %}{% trans "示例知识库" %}{% endif %}</title>
+    <link href="{% static 'layui/css/layui.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+    <link href="{% static 'mrdoc/mrdoc.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+    <link href="{% static 'iconFont/iconfont.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+    <link rel="icon" href="{% static 'search/mrdoc_logo_300.png' %}" sizes="192x192" />
+    <style>
+        html, body { margin: 0; padding: 0; min-height: 100%; background: #FAFAFA; color: #262626;
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+        a { text-decoration: none; color: inherit; }
+        .xjy-space-container { max-width: 1140px; margin: 0 auto; padding: 24px 24px 60px; box-sizing: border-box; }
+        
+        /* 顶部导航 */
+        .xjy-space-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; font-size: 14px; }
+        .xjy-back-home { color: #595959; display: inline-flex; align-items: center; }
+        .xjy-back-home:hover { color: #00B96B; }
+        .xjy-back-home .layui-icon { margin-right: 4px; font-size: 14px; }
+
+        /* 空间 Banner 卡片 */
+        .xjy-space-banner { background: #fff; border: 1px solid #E7E9E8; border-radius: 8px; padding: 24px 28px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.03); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+        .xjy-space-meta { display: flex; align-items: center; gap: 18px; min-width: 0; flex: 1; }
+        .xjy-space-icon { width: 56px; height: 56px; border-radius: 8px; background: #EBF8F2; color: #00B96B;
+            display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; overflow: hidden; }
+        .xjy-space-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .xjy-space-icon .icon { width: 32px; height: 32px; }
+        .xjy-space-info { min-width: 0; flex: 1; }
+        .xjy-space-title-row { display: flex; align-items: center; gap: 8px; }
+        .xjy-space-name { font-size: 20px; font-weight: 600; color: #262626; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xjy-space-tag { font-size: 12px; padding: 1px 6px; border-radius: 4px; background: #F0F0F0; color: #8C8C8C; }
+        .xjy-space-desc { margin-top: 6px; font-size: 13px; color: #8C8C8C; line-height: 1.5; }
+
+        .xjy-space-actions { display: flex; align-items: center; gap: 10px; }
+
+        /* 区块标题 */
+        .xjy-block-title { font-size: 17px; font-weight: 500; color: #262626; margin: 32px 0 16px; display: flex; align-items: center; justify-content: space-between; }
+        .xjy-block-title .count { font-size: 13px; color: #8C8C8C; font-weight: normal; }
+
+        /* 知识库网格 */
+        .xjy-proj-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+        .xjy-proj-card { background: #fff; border: 1px solid #E7E9E8; border-radius: 6px; padding: 16px 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,.03); transition: all .15s; display: flex; flex-direction: column; justify-content: space-between; min-height: 90px; }
+        .xjy-proj-card:hover { border-color: #00B96B; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+        .xjy-proj-head { display: flex; align-items: center; gap: 8px; }
+        .xjy-proj-icon { font-size: 18px; color: #3A7BD5; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+        .xjy-proj-icon .icon { width: 18px; height: 18px; }
+        .xjy-proj-name { font-size: 14px; font-weight: 500; color: #262626; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .xjy-proj-lock { font-size: 12px; color: #8C8C8C; }
+        .xjy-proj-desc { font-size: 12px; color: #8C8C8C; margin-top: 8px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 16px; }
+        .xjy-proj-foot { margin-top: 12px; font-size: 12px; color: #BFBFBF; display: flex; align-items: center; justify-content: space-between; }
+
+        /* 文档列表 */
+        .xjy-doc-list { background: #fff; border: 1px solid #E7E9E8; border-radius: 6px; padding: 0 20px; }
+        .xjy-doc-row { display: flex; align-items: center; height: 56px; border-bottom: 1px solid #EEEEEE; box-sizing: border-box; }
+        .xjy-doc-row:last-child { border-bottom: none; }
+        .xjy-doc-row:hover { background: #FAFAFA; }
+        .xjy-doc-main { flex: 0 0 50%; min-width: 0; display: flex; align-items: center; padding-right: 12px; box-sizing: border-box; }
+        .xjy-doc-main .iconfont { font-size: 18px; color: #3A7BD5; margin-right: 12px; flex-shrink: 0; }
+        .xjy-doc-main a { font-size: 14px; color: #262626; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xjy-doc-main a:hover { color: #00B96B; }
+        .xjy-doc-meta { flex: 0 0 30%; font-size: 13px; color: #8C8C8C; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xjy-doc-date { flex: 0 0 20%; font-size: 13px; color: #8C8C8C; text-align: right; }
+
+        .xjy-empty-box { background: #fff; border: 1px solid #E7E9E8; border-radius: 6px; padding: 36px 0; text-align: center; color: #999; font-size: 13px; }
+
+        /* 页脚 */
+        .xjy-space-footer { margin-top: 50px; text-align: center; font-size: 12px; color: #BFBFBF; }
+
+        /* 弹窗内部样式 */
+        .layui-form-label { width: 40px !important; }
+        .layui-input-block { margin-left: 70px !important; }
+
+        @media screen and (max-width: 768px){
+            .xjy-space-container { padding: 16px 12px 40px; }
+            .xjy-proj-grid { grid-template-columns: 1fr; }
+            .xjy-doc-meta { display: none; }
+            .xjy-doc-main { flex: 0 0 70%; }
+            .xjy-doc-date { flex: 0 0 30%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="xjy-space-container">
+    <!-- 顶部导航 -->
+    <div class="xjy-space-nav">
+        <a class="xjy-back-home" href="{% url 'pro_list' %}">
+            <i class="layui-icon layui-icon-left"></i>{% trans "返回首页" %}
+        </a>
+        <span style="color: #8C8C8C; font-size: 13px;">{% trans "空间详情" %}</span>
+    </div>
+
+    <!-- 空间 Banner -->
+    <div class="xjy-space-banner">
+        <div class="xjy-space-meta">
+            <div class="xjy-space-icon">
+                {% if space.avatar %}
+                    <img src="{{ space.avatar.url }}" alt="{{ space.name }}">
+                {% elif space.icon and space.icon != 'None' %}
+                    <svg class="icon" aria-hidden="true"><use xlink:href="#{{ space.icon }}"></use></svg>
+                {% else %}
+                    <i class="layui-icon layui-icon-home"></i>
+                {% endif %}
+            </div>
+            <div class="xjy-space-info">
+                <div class="xjy-space-title-row">
+                    <h1 class="xjy-space-name">{{ space.name }}</h1>
+                    {% if space.role == 1 %}
+                        <span class="xjy-space-tag"><i class="layui-icon layui-icon-password" style="font-size:12px;"></i> {% trans "私密" %}</span>
+                    {% elif space.role == 4 %}
+                        <span class="xjy-space-tag">{% trans "登录可见" %}</span>
+                    {% elif space.role == 2 %}
+                        <span class="xjy-space-tag">{% trans "指定可见" %}</span>
+                    {% elif space.role == 3 %}
+                        <span class="xjy-space-tag">{% trans "访问码" %}</span>
+                    {% endif %}
+                </div>
+                <div class="xjy-space-desc">
+                    {% if space.intro %}{{ space.intro }}{% else %}{% trans "此空间暂无简介" %}{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="xjy-space-actions">
+            {% if is_creator_or_admin %}
+                <a href="{% url 'modify_space' space_id=space.id %}" class="layui-btn layui-btn-primary layui-btn-sm" style="border-radius:6px; color:#595959;">
+                    <i class="layui-icon layui-icon-set"></i> {% trans "空间设置" %}
+                </a>
+                <button class="layui-btn layui-btn-sm" style="background:#00B96B; border-radius:6px;" onclick="createProInSpace()">
+                    <i class="layui-icon layui-icon-add-1"></i> {% trans "新建知识库" %}
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 知识库区块 -->
+    <div class="xjy-block-title">
+        <span>{% trans "知识库" %}</span>
+        <span class="count">{{ space_projects|length }} {% trans "个知识库" %}</span>
+    </div>
+    {% if space_projects %}
+    <div class="xjy-proj-grid">
+        {% for p in space_projects %}
+        <a class="xjy-proj-card" href="{% url 'pro_index' pro_id=p.id %}" title="{{ p.name }}">
+            <div>
+                <div class="xjy-proj-head">
+                    <span class="xjy-proj-icon">
+                        {% if p.icon and p.icon != 'None' %}
+                            <svg class="icon" aria-hidden="true"><use xlink:href="#{{ p.icon }}"></use></svg>
+                        {% else %}
+                            <i class="layui-icon layui-icon-read"></i>
+                        {% endif %}
+                    </span>
+                    <span class="xjy-proj-name">{{ p.name }}</span>
+                    {% if p.role == 1 %}<i class="layui-icon layui-icon-password xjy-proj-lock"></i>{% endif %}
+                </div>
+                <div class="xjy-proj-desc">
+                    {% if p.intro %}{{ p.intro|project_desc|slice:'60' }}{% else %}{% trans "暂无简介" %}{% endif %}
+                </div>
+            </div>
+            <div class="xjy-proj-foot">
+                <span>{{ p.create_user.username }}</span>
+                <span>{{ p.id|get_doc_count }} 篇文档</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="xjy-empty-box">{% trans "空间下暂无知识库" %}</div>
+    {% endif %}
+
+    <!-- 最近更新区块 -->
+    <div class="xjy-block-title">
+        <span>{% trans "最近更新" %}</span>
+    </div>
+    {% if recent_docs %}
+    <div class="xjy-doc-list">
+        {% for d in recent_docs %}
+        <div class="xjy-doc-row">
+            <div class="xjy-doc-main">
+                <i class="iconfont mrdoc-icon-wendang"></i>
+                <a href="{% url 'doc_id' doc_id=d.id %}" title="{{ d.name }}">{{ d.name }}</a>
+            </div>
+            <div class="xjy-doc-meta">{{ d.create_user.username }} / {% for p in space_projects %}{% if p.id == d.top_doc %}{{ p.name }}{% endif %}{% endfor %}</div>
+            <div class="xjy-doc-date">{{ d.modify_time|date:"Y-m-d H:i" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="xjy-empty-box">{% trans "空间下暂无最近更新文档" %}</div>
+    {% endif %}
+
+    <div class="xjy-space-footer">
+        {% if site_name != None and site_name != '' %}{{ site_name }}{% else %}{% trans "MrDoc 文档" %}{% endif %} · {% trans "企业内部知识库" %}
+    </div>
+</div>
+
+<!-- 新建文集弹窗div -->
+<div style="padding: 20px;display:none;" id="create-project-in-space-div">
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">{% trans "图标" %}</label>
+            <div class="layui-input-block">
+                <button class="layui-btn layui-btn-primary layui-btn-sm" id="space-project-icon-select">
+                    <i class="layui-icon layui-icon-addition"></i>
+                </button>
+                <input type="hidden" name="picon" id="space-picon" />
+                <div class="layui-anim layui-anim-upbit layui-iconpicker hide-project-icon-list" id="space-project-icon-select-box">
+                    <div class="layui-iconpicker-list" id="space-mrdoc-project-icon-list"></div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">{% trans "名称" %}</label>
+            <div class="layui-input-block">
+                <input class="layui-input" type="text" id="space-pname" style="margin-bottom:10px;" placeholder="{% trans '输入文集名' %}" required lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">{% trans "简介" %}</label>
+            <div class="layui-input-block">
+                <textarea name="desc" id="space-pdesc" placeholder="{% trans '输入文集简介，不超过100个字' %}" maxlength="100" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">{% trans "权限" %}</label>
+            <div class="layui-input-block">
+                <input type="radio" name="space-proj-role" value="0" title="{% trans '公开' %}" checked>
+                <input type="radio" name="space-proj-role" value="1" title="{% trans '私密' %}">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'iconFont/iconfont.js' %}?version={{mrdoc_version}}"></script>
+<script src="{% static 'jquery/3.5.0/jquery.min.js' %}"></script>
+<script src="{% static 'layui/layui.js' %}?version={{mrdoc_version}}"></script>
+<script>
+    $.ajaxSetup({
+        data: { csrfmiddlewaretoken: '{{ csrf_token }}' }
+    });
+    var layer = layui.layer;
+    var form = layui.form;
+
+    // 图标生成
+    for(var i = 1; i < 44; i++){
+        var icon_elem = '<div class="layui-iconpicker-icon-item" style="width:20%" data-icon="mrdoc-icon-pro-' + i + '"><svg class="icon" aria-hidden="true"><use xlink:href="#mrdoc-icon-pro-' + i + '"></use></svg></div>';
+        $("#space-mrdoc-project-icon-list").append(icon_elem);
+    }
+    $("#space-project-icon-select").click(function(){
+        $("#space-project-icon-select-box").toggleClass("hide-project-icon-list");
+    });
+    $("#space-mrdoc-project-icon-list").on("click", ".layui-iconpicker-icon-item", function(e){
+        var selected_icon = e.currentTarget.dataset.icon;
+        var selected_icon_svg = '<svg class="icon" aria-hidden="true"><use xlink:href="#' + selected_icon + '"></use></svg>';
+        $("#space-project-icon-select").html(selected_icon_svg);
+        $("#space-picon").val(selected_icon);
+        $("#space-project-icon-select-box").toggleClass("hide-project-icon-list");
+    });
+
+    function createProInSpace(){
+        layer.open({
+            type: 1,
+            title: '{% trans "新建知识库（文集）" %}',
+            area: '400px',
+            id: 'createProInSpaceModal',
+            content: $('#create-project-in-space-div'),
+            btn: ['{% trans "确定" %}', '{% trans "创建并添加文档" %}', '{% trans "取消" %}'],
+            btnAlign: 'c',
+            success: function(){
+                form.render();
+            },
+            yes: function(index, layero){
+                var pname = $.trim($('#space-pname').val());
+                if(!pname){
+                    layer.msg('{% trans "文集名称不能为空！" %}');
+                    return;
+                }
+                layer.load(1);
+                var data = {
+                    'picon': $('#space-picon').val(),
+                    'pname': pname,
+                    'desc': $('#space-pdesc').val(),
+                    'role': $('input[name=space-proj-role]:checked').val(),
+                    'space': '{{ space.id }}',
+                    'category': '{{ space.name }}'
+                };
+                $.ajax({
+                    url: "{% url 'create_project' %}",
+                    type: 'post',
+                    data: data,
+                    success: function(r){
+                        layer.closeAll('loading');
+                        if(r.status){
+                            window.location.reload();
+                        }else{
+                            layer.msg(r.data);
+                        }
+                    },
+                    error: function(){
+                        layer.closeAll('loading');
+                        layer.msg('{% trans "创建异常" %}');
+                    }
+                });
+            },
+            btn2: function(index, layero){
+                var pname = $.trim($('#space-pname').val());
+                if(!pname){
+                    layer.msg('{% trans "文集名称不能为空！" %}');
+                    return false;
+                }
+                layer.load(1);
+                var data = {
+                    'picon': $('#space-picon').val(),
+                    'pname': pname,
+                    'desc': $('#space-pdesc').val(),
+                    'role': $('input[name=space-proj-role]:checked').val(),
+                    'space': '{{ space.id }}',
+                    'category': '{{ space.name }}'
+                };
+                $.ajax({
+                    url: "{% url 'create_project' %}",
+                    type: 'post',
+                    data: data,
+                    success: function(r){
+                        layer.closeAll('loading');
+                        if(r.status){
+                            window.location.href = '/create_doc/?pid=' + r.data.id;
+                        }else{
+                            layer.msg(r.data);
+                        }
+                    },
+                    error: function(){
+                        layer.closeAll('loading');
+                        layer.msg('{% trans "创建异常" %}');
+                    }
+                });
+                return false;
+            }
+        });
+    }
+</script>
+</body>
+</html>

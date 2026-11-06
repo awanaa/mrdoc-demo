@@ -1,0 +1,180 @@
+{% extends 'app_admin/admin_base.html' %}
+{% load static %}
+{% load i18n %}
+{% block title %}注册码管理{% endblock %}
+{% block content %}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-card-header" style="margin-bottom: 10px;">
+        <div class="layui-row">
+            <span style="font-size:18px;">注册邀请码管理
+            </span>
+        </div>
+        </div>
+        <div class="layui-row">
+            <form action="{% url 'project_manage' %}" method="get">
+            <div class="layui-form-item">
+                <button class="pear-btn pear-btn-primary pear-btn-sm" onclick="createRegisterCode()" type="button"><i class="layui-icon layui-icon-addition"></i>新增注册码</button>
+            </div>
+            </form>
+        </div>
+        <div class="layui-row" lay-skin="line">
+            <table class="layui-table"  id="registercode-table" lay-filter="registercode-table"></table>
+        </div>
+    </div>
+</div>
+
+<!-- 创建时间 -->
+<script type="text/html" id="registerTime">
+    {% verbatim %}
+    {{layui.util.toDateString(d.create_time,  "yyyy-MM-dd HH:mm:ss")}}
+    {% endverbatim %}
+</script>
+
+<!-- 用户操作模板 -->
+<script type="text/html" id="userOpera">
+    {% verbatim %}
+    <button class="pear-btn pear-btn-danger pear-btn-sm" lay-event="remove"><i class="layui-icon layui-icon-delete"></i></button>
+    {% endverbatim %}
+</script>
+{% endblock %}
+
+{% block custom_script %}
+<div style="margin:10px;display:none;" id="registerCodeDialog">
+    <div class="layui-form-item">
+        <label class="layui-form-label">有效注册数</label>
+        <div class="layui-input-block">
+            <input class="layui-input" id="regCodeCnt" type="number" value=1 placeholder="输入注册码最大使用次数"/>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">有效期</label>
+        <div class="layui-input-block">
+            <input type="text" class="layui-input" id="registerCodeExpireDate">
+        </div>
+    </div>
+</div>
+<script>
+    layui.use(['table','jquery','form','layer','element'], function() {
+        let table = layui.table;
+        let form = layui.form;
+        let $ = layui.jquery;
+        let layer = layui.layer;
+        let element = layui.element;
+        var laydate = layui.laydate;
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+            headers: {"X-CSRFToken":'{{ csrf_token }}'},
+        });
+        // 渲染新增注册码的有效期时间选择期
+        const defaultExpireDate = new Date(); // 获取当前日期
+        defaultExpireDate.setDate(defaultExpireDate.getDate() + 7); // 将日期设置为当前日期加7天
+        laydate.render({
+            elem: '#registerCodeExpireDate',
+            min: 1,
+            value: defaultExpireDate,
+          });
+        //获取附件列表，执行表格渲染
+        table.render({
+            elem: '#registercode-table',
+            url: "{% url 'api_admin_register_code' %}",
+            method:'get',
+            page:true,
+            cols: [[
+                // {type: 'checkbox',width:20},
+                {field:'code',title:'注册邀请码',templet:"#fileName"},
+                {field:'all_cnt',title:'有效注册数量',},
+                {field:'used_cnt',title:'已使用数量',},
+                {field:'expire_date',title:'有效期'},
+                {field:'status',title:'状态',templet:"#codeStatus"},
+                {field:'user_list',title:'用户列表',},
+                {field:'create_time',title:'创建时间',width:160,templet:'#registerTime'},
+                {field:'oprate',title:'操作',minWidth:200,templet:'#userOpera'},
+            ]],
+            skin: 'line',
+            escape:true,
+        });
+        //新增注册码
+        createRegisterCode = function(){
+            layer.open({
+                type:1,
+                title:'新增注册码',
+                area:'300px;',
+                id:'createRegCode',//配置ID
+                content:$("#registerCodeDialog"),
+                btn:['确定','取消'], //添加按钮
+                btnAlign:'c', //按钮居中
+                yes:function (index,layero) {
+                    layer.load(1);
+                    $.ajax({
+                        url: "{% url 'api_admin_register_code' %}",
+                        dataType: 'json',
+                        type: 'post',
+                        data:{'all_cnt':$("#regCodeCnt").val(),'expire_date':$("#registerCodeExpireDate").val()},
+                        success: function(r) {
+                            layer.closeAll();
+                            if (r.code == 0) {
+                                layer.msg("{% trans '新增成功' %}", {
+                                    icon: 1,
+                                    time: 1000
+                                }, function() {
+                                    table.reload('registercode-table',{page:{curr:1}});
+                                });
+                            } else {
+                                layer.msg(r.data, {
+                                    icon: 2,
+                                    time: 1000
+                                });
+                            }
+                        }
+                    })
+                },
+            });
+        };
+        //删除注册码
+        delRegisterCode = function(code_id){
+            layer.open({
+                type:1,
+                title:'删除文档',
+                area:'300px;',
+                id:'delRegCode',//配置ID
+                content:'<div style="margin-left:10px;">警告：此操作将删除此注册码！</div>',
+                btn:['确定','取消'], //添加按钮
+                btnAlign:'c', //按钮居中
+                yes:function (index,layero) {
+                    $.ajax({
+                        url: "{% url 'api_admin_register_code' %}",
+                        dataType: 'json',
+                        type: 'delete',
+                        data:{'code_id':code_id,},
+                        success: function(r) {
+                            layer.closeAll();
+                            if (r.code == 0) {
+                                layer.msg("{% trans '删除成功' %}", {
+                                    icon: 1,
+                                    time: 1000
+                                }, function() {
+                                    table.reload('registercode-table',{page:{curr:1}});
+                                });
+                            } else {
+                                layer.msg(r.data, {
+                                    icon: 2,
+                                    time: 1000
+                                });
+                            }
+                        }
+                    })
+
+                },
+            });
+        };
+        // 侦听注册码删除按钮
+        table.on("tool(registercode-table)",function(obj){
+            if (obj.event === 'remove') {
+                // console.log(obj)
+                delRegisterCode(obj.data.id)
+            }
+        });
+    })
+</script>
+{% endblock %}

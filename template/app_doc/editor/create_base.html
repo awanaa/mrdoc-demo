@@ -1,0 +1,1358 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="UTF-8">
+        <meta name=renderer  content=webkit>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge，chrome=1">
+        <meta http-equiv="Cache-Control" content="no-transform" />
+        <meta http-equiv="Cache-Control" content="no-siteapp" />
+        <meta http-equiv="Cache-Control" content="max-age=7200" />
+        <!-- <meta name="referrer" content="no-referrer"> -->
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>{% block title %}{% endblock %} - {% if site_name != None and site_name != '' %}{{site_name}} {% else %}站点标题{% endif %}</title>
+        <link href="{% static 'layui/css/layui.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+        {% if editor_mode == 1 %}
+        <!-- Editor.MD编辑器样式表 -->
+        <link rel="stylesheet" href="{% static 'mr-marked/marked.css' %}?version={{mrdoc_version}}" />
+        <link rel="stylesheet" href="{% static 'mr-editor/global.css' %}?version={{mrdoc_version}}" />
+        {% elif editor_mode == 2 %}
+        <!-- Vditor编辑器样式表 -->
+        <link rel="stylesheet" href="{% static 'vditor/dist/index.css' %}?version={{mrdoc_version}}" />
+        {% elif editor_mode == 4 %}
+        <!-- 在线表格 -->
+        <link rel='stylesheet' href="{% static 'luckysheet/dist/plugins/css/pluginsCss.css' %}?version={{mrdoc_version}}" />
+        <link rel='stylesheet' href="{% static 'luckysheet/dist/plugins/plugins.css' %}?version={{mrdoc_version}}" />
+        <link rel='stylesheet' href="{% static 'luckysheet/dist/css/luckysheet.css' %}?version={{mrdoc_version}}" />
+        <link rel='stylesheet' href="{% static 'luckysheet/dist/assets/iconfont/iconfont.css' %}?version={{mrdoc_version}}" />
+        {% endif %}
+        <link rel="icon" href="{% static 'search/mrdoc_logo_300.png' %}" sizes="192x192" />
+        <link href="{% static 'mrdoc/mrdoc.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+        <link href="{% static 'mrdoc/mrdoc-editor.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+        <link href="{% static 'tagsInput/tagsinput.css' %}" rel="stylesheet" type="text/css"/>
+        <link href="{% static 'prismjs/prism.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+        <!-- jsTree 文集目录树 -->
+        <link href="{% static 'jstree/dist/themes/default/custom.style.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+        <!-- 图标字体 -->
+        <link href="{% static 'iconFont/iconfont.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+        <style>
+            i.iconfont{
+                padding-right: 6px;
+            }
+        </style>
+        <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+    </head>
+    <body class="big-page">
+        <div class="doc layui-fluid" style="padding-left:0px;">
+            <!-- 左侧工具栏 -->
+            <div class="doc-summary">
+                <div class="project-title">
+                    <svg t="1727182710656" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="74688" width="200" height="200"><path d="M558.63 760.6L386.11 933.12a101.3 101.3 0 0 1-143.26-143.26l172.53-172.52A101.3 101.3 0 0 1 558.63 760.6z m0 0" fill="#1792E5" p-id="74689"></path><path d="M600.05 225.39l197.46 197.45a18 18 0 0 0 25.46 0l67.62-67.58a18 18 0 0 0 0-25.46L693.05 132.43a18 18 0 0 0-25.45 0l-67.55 67.5a18 18 0 0 0 0 25.46z m-73.16 47.68L162.84 637a90 90 0 0 0-26.35 64.82l2.2 167.18a18 18 0 0 0 18 17.76H358.92L749.8 496a18 18 0 0 0 0-25.46L552.34 273.08a18 18 0 0 0-25.44 0z m408.43 5.83a90 90 0 0 1 0 127.33L406.66 934.7a90.09 90.09 0 0 1-63.58 26.37l-190.73 0.24a90.05 90.05 0 0 1-90.19-89.92l-0.24-191.34a90 90 0 0 1 26.38-63.77L616.87 87.9a90.1 90.1 0 0 1 127.38 0z m-344.69 615h326.09c24.85 0 45 6.63 45 31.48s-20.13 36-45 36H590.65a33.73 33.73 0 0 1 0-67.46z m0 0" fill="#424242" p-id="74690"></path></svg>
+                    {% trans "MrDoc 文档编辑器" %}
+                    <br>
+                    <span style="font-size: 14px;">你正在：{{editor_type }}</span>
+                </div>
+                <hr>
+                <div style="background:#f7f8fa;border-radius:4px;padding:8px 10px;margin:8px;font-size:12px;color:#888;">企业知识库 · 文档即创作</div>
+                {% block left_opera %}
+                {% endblock %}
+            </div>
+            <!-- 左侧工具栏结束 -->
+
+            <!-- 右侧编辑器栏 -->
+            <div class="doc-body">
+                <!-- 文档导航 -->
+                <div class="doc-header page-editor-header layui-row" role="navigation" style="z-index: 999;">
+                    <!-- 顶部工具栏 -->
+                    {% block head_toolbar %}
+                    {% endblock %}
+                </div>
+                <!-- 文档主体 -->
+                <div class="doc-body-content" style="padding-left: 15px;">
+                    <div class="mrdoc-body-content-div">
+                        <!-- 语雀首页/模板 区块 -->
+                        <div id="yuque-dashboard" style="display:none;">
+                            <div class="yq-dash-header">
+                                <div class="yq-dash-subtitle">
+                                    <span>{% trans "直接输入正文，也可选择一个模板：" %}</span>
+                                    <a href="javascript:void(0);" id="yq-start-blank" class="yq-dash-blank-btn">{% trans "直接输入正文" %} &rarr;</a>
+                                </div>
+                            </div>
+                            <!-- 模板卡片网格 -->
+                            <div class="yq-template-grid" id="yuque-template-grid">
+                                <div class="yq-template-card" data-template-key="meeting">
+                                    <div class="yq-tpl-icon">📋</div>
+                                    <div class="yq-tpl-meta">
+                                        <div class="yq-tpl-title">{% trans "会议记录" %}</div>
+                                        <div class="yq-tpl-desc">{% trans "来自MrDoc 推荐模板" %}</div>
+                                    </div>
+                                </div>
+                                <div class="yq-template-card" data-template-key="weekly">
+                                    <div class="yq-tpl-icon">📝</div>
+                                    <div class="yq-tpl-meta">
+                                        <div class="yq-tpl-title">{% trans "工作周报" %}</div>
+                                        <div class="yq-tpl-desc">{% trans "来自MrDoc 推荐模板" %}</div>
+                                    </div>
+                                </div>
+                                <div class="yq-template-card" data-template-key="review">
+                                    <div class="yq-tpl-icon">🏆</div>
+                                    <div class="yq-tpl-meta">
+                                        <div class="yq-tpl-title">{% trans "项目复盘" %}</div>
+                                        <div class="yq-tpl-desc">{% trans "来自MrDoc 推荐模板" %}</div>
+                                    </div>
+                                </div>
+                                <div class="yq-template-card" data-template-key="reading">
+                                    <div class="yq-tpl-icon">📚</div>
+                                    <div class="yq-tpl-meta">
+                                        <div class="yq-tpl-title">{% trans "读书笔记" %}</div>
+                                        <div class="yq-tpl-desc">{% trans "来自MrDoc 推荐模板" %}</div>
+                                    </div>
+                                </div>
+                                <div class="yq-template-card" data-template-key="plan">
+                                    <div class="yq-tpl-icon">🎯</div>
+                                    <div class="yq-tpl-meta">
+                                        <div class="yq-tpl-title">{% trans "个人规划" %}</div>
+                                        <div class="yq-tpl-desc">{% trans "来自MrDoc 推荐模板" %}</div>
+                                    </div>
+                                </div>
+                                <div class="yq-template-card" data-template-key="more">
+                                    <div class="yq-tpl-icon">📁</div>
+                                    <div class="yq-tpl-meta">
+                                        <div class="yq-tpl-title">{% trans "更多模板" %}</div>
+                                        <div class="yq-tpl-desc">{% trans "来自MrDoc 推荐模板" %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 最近文档区块 -->
+                            <div class="yq-recent-section" id="yuque-recent-section">
+                                <div class="yq-recent-header">
+                                    <i class="layui-icon layui-icon-time"></i>
+                                    <span>{% trans "从最近编辑的文档中复制内容过来：" %}</span>
+                                </div>
+                                <div class="yq-recent-grid" id="yuque-recent-list">
+                                    <div class="yq-recent-empty">{% trans "暂无最近编辑的文档" %}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 文档内容 -->
+                        <div class="mrdoc-editor-content">
+                            <!-- 正文开始 -->
+                            <div class="markdown-body" id="content">
+                                {% block content %}
+                                {% endblock %}
+                            </div>
+                            <!-- 正文结束 -->
+                        </div>
+
+                        <!-- 语雀大纲面板 -->
+                        <div id="yuque-outline-panel" style="display:none;">
+                            <div class="yq-outline-header">
+                                <span class="yq-outline-title">{% trans "大纲" %}</span>
+                                <a href="javascript:void(0);" id="yuque-outline-close" class="yq-outline-close" title="{% trans "关闭" %}">&times;</a>
+                            </div>
+                            <div class="yq-outline-body" id="yuque-outline-list">
+                                <div class="yq-outline-empty">{% trans "暂无大纲" %}</div>
+                            </div>
+                        </div>
+
+                        <!-- 实时字数统计 -->
+                        <div id="yuque-word-count" style="display:none;">
+                            <span id="yuque-word-count-num">0</span> {% trans "字" %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- 语雀风格：文档协作者抽屉面板骨架 -->
+        <div id="collab-panel-mask" style="display:none"></div>
+        <div id="collab-panel" style="display:none"></div>
+
+        {% block custom_div %}
+        {% endblock %}
+
+        <!-- 选择和上传图片div -->
+        <div id="upload-img" style="display:none;margin:20px;">
+            <div class="layui-tab" lay-filter="img-tab">
+            <ul class="layui-tab-title">
+                <li class="layui-this">上传图片</li>
+                <li>选择图片</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <div class="layui-row">
+                        <button class="layui-btn layui-btn-primary layui-btn-fluid" id="upload_img"><i class="layui-icon layui-icon-upload"></i> 上传图片</button>
+                    </div>
+                    <fieldset class="layui-elem-field layui-field-title" style="text-align: center;">
+                        <legend style="font-size: 12px;">或 插入外链图片链接</legend>
+                    </fieldset>
+                    <div class="layui-row" style="margin-top: 10px;">
+                        <input type="text" class="layui-input" placeholder="输入图片URL" id="img_url_input" style="margin-bottom: 5px;"/>
+                        <button type="button" class="layui-btn layui-btn-primary" onclick="insertImgUrl()">插入图片链接</button>
+                    </div>
+                </div>
+                <div class="layui-tab-item">
+                    <div class="layui-row" id="select-img-group">
+                    </div><hr>
+                    <div class="layui-row" id="select-img"></div>
+                    <div id="select-img-page"></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- 选择和上传附件div -->
+        <div id="upload-attach" style="display:none;margin:20px;">
+            <span>* 仅支持 {% if attachment_suffix and attachment_suffix != '' %}{{attachment_suffix}}{% else %}zip{% endif %} 格式文件，文件大小不超过 {% if attachment_size and attachment_size != '' %}{{attachment_size}}{% else %}50{% endif %}MB</span>
+            <div style="margin: 10px 0 0 10px;">
+                <button class="layui-btn layui-btn-primary layui-btn-sm" id="upload_attachment"><i class="layui-icon layui-icon-upload"></i> 上传附件</button>
+                <a class="layui-btn layui-btn-primary layui-btn-sm" href="{% url 'user_center' %}?tab=manage_attachment" target="_blank"><i class="iconfont mrdoc-icon-manage"></i> 管理附件</a>
+            </div>
+            <table class="layui-table" id="attach_table" style="margin: 10px;width:90%;">
+                <thead>
+                    <th>附件名称</th>
+                    <th>附件大小</th>
+                    <th>上传时间</th>
+                    <th>操作</th>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <div id="select-attach-page"></div>
+        </div>
+
+        <!-- 添加表格div -->
+        <div id="layer-table" style="display: none;margin: 10px;">
+            <div class="layui-tab" lay-filter="table-tab" id="insert-table-div">
+                <ul class="layui-tab-title">
+                <li class="layui-this" lay-id="generaTable">生成表格</li>
+                <li lay-id="pasteTable">粘贴表格</li>
+                </ul>
+                <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show" >
+                    <div class="layui-row" style="margin: 10px;">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <div class="layui-input-inline" style="width: 50px;">
+                                    <input type="number"  placeholder="行" id="row" class="layui-input" value="3">
+                                </div>
+                                <div class="layui-form-mid">x</div>
+                                <div class="layui-input-inline" style="width: 50px;">
+                                    <input type="number" placeholder="列" id="col"  class="layui-input" value="3">
+                                </div>
+                                <div class="layui-form-mid" style="width: 100px;">
+                                    <button class="layui-btn layui-btn-normal layui-btn-xs" onclick="addtable(1)" >生成表格</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row" style="margin:10px;" id="TableGroup"></div>
+                </div>
+
+                <div class="layui-tab-item" >
+                    <textarea placeholder="粘贴Excel或在线电子表格的内容" class="layui-textarea" style="height: 200px;" id="pasteExcel"></textarea>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加音视频div -->
+        <div id="insertMultimedia" style="display: none;margin:10px;">
+            <div class="layui-row">
+                <fieldset class="layui-elem-field">
+                    <legend>插入音频链接</legend>
+                    <div class="layui-field-box">
+                    <input class="layui-input" type="url" id="audio_input" placeholder="填入音频文件链接，支持文件后缀格式为mp3、wav、flac、m4a" style="margin-bottom: 5px;">
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="insertMultimedia('audio')">插入音频</button>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="layui-row">
+                <fieldset class="layui-elem-field">
+                    <legend>插入视频链接</legend>
+                    <div class="layui-field-box">
+                        <input class="layui-input" type="url" id="video_input" placeholder="填入视频文件链接，支持文件后缀格式为mp4、m4v、ogg、ogv、webm" style="margin-bottom: 5px;">
+                        <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="insertMultimedia('video')">插入视频</button>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="layui-row">
+                <fieldset class="layui-elem-field">
+                    <legend>插入视频网站链接</legend>
+                    <div class="layui-field-box">
+                        <input class="layui-input" type="url" id="video_iframe_input" placeholder="填入视频网站视频播放页链接，支持YouTube、优酷、QQ视频、Facebook、哔哩哔哩、TED网站" style="margin-bottom: 5px;">
+                        <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="insertMultimedia('video_iframe')">插入视频网站视频</button>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+
+        <!-- 文档本地缓存div -->
+        <div class="layui-form" id="doc-cache-div" style="display: none;">
+            <div style="margin: 5px;">
+                <textarea name="desc" id="doc-cache-content" class="layui-textarea" style="height: 350px;" disabled></textarea>
+            </div>
+        </div>
+
+        <script src="{% static 'jquery/3.5.0/jquery.min.js' %}"></script>
+        <script src="{% static 'jstree/dist/jstree.min.js' %}?version={{mrdoc_version}}"></script>
+        <script src="{% static 'layui/layui.js' %}?version={{mrdoc_version}}"></script>
+        <script>
+            var tree = layui.tree;
+            var layer = layui.layer;
+            var form = layui.form;
+            var element = layui.element;
+            var laypage = layui.laypage;
+            var md_changed = false; //初始化一个变量，用于判断编辑器是否修改
+            var screen_width = window.matchMedia('(max-width: 768px)'); // 获取屏幕宽度
+            var editor_mode = {{ editor_mode }};
+            var current_doc_id = '{{doc.id}}'; // 当前文档ID，新建文档页面为空
+        </script>
+        <!-- 标签输入 -->
+        <script src="{% static '/tagsInput/tagsinput.js' %}?version={{mrdoc_version}}" type="text/javascript" charset="utf-8"></script>
+        <!-- 快捷键 -->
+        <script src="{% static 'shortcut/shortcut.js' %}?version={{mrdoc_version}}" type="text/javascript"></script>
+        <!-- 加载编辑器 -->
+        {% if editor_mode == 1 %}
+            <!-- Editor.MD编辑器 -->
+            {% include 'app_doc/editor/tpl_editor_editormd.html' %}
+        {% elif editor_mode == 2 %}
+            <!-- Vditor编辑器 -->
+            <script src="{% static 'vditor/dist/index.min.js' %}?version={{mrdoc_version}}"></script>
+            {% include 'app_doc/editor/tpl_editor_vditor.html' %}
+        {% elif editor_mode == 3 %}
+            <!-- iceEditor富文本编辑器 -->
+            <script src="{% static 'iceEditor/src/iceEditor.min.js' %}?version={{mrdoc_version}}"></script>
+            <script src="{% static 'purifyjs/purify.min.js' %}?version={{mrdoc_version}}"></script>
+            {% include 'app_doc/editor/tpl_editor_ice.html' %}
+        {% elif editor_mode == 4 %}
+            <!-- 在线表格 -->
+            <script src="{% static 'luckysheet/dist/plugins/js/plugin.js' %}?version={{mrdoc_version}}"></script>
+            <script src="{% static 'luckysheet/dist/luckysheet.umd.js' %}?version={{mrdoc_version}}"></script>
+            <script src="{% static 'luckysheet/dist/luckyexcel.umd.js' %}?version={{mrdoc_version}}"></script>
+            {% include 'app_doc/editor/tpl_editor_table.html' %}
+        {% endif %}
+        <script>
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            });
+    
+            //未保存离开提示
+            window.onbeforeunload =function() {
+            　　 if(md_changed){
+                    return 1;
+                }else{
+                    return null;
+                }
+            };
+        </script>
+        <script src="{% static 'mrdoc/mrdoc.editor.js' %}?version={{mrdoc_version}}"></script>
+        <script src="{% static 'mrdoc/mrdoc.js' %}?version={{mrdoc_version}}"></script>
+        <script src="{% static 'prismjs/prism.js' %}?version={{mrdoc_version}}"></script>
+        <!-- jsTree文集目录相关功能 -->
+        <script>
+            // 获取URL查询参数
+            function getQueryVariable(variable) {
+                var query = window.location.search.substring(1);
+                var vars = query.split("&");
+                for (var i = 0; i < vars.length; i++) {
+                    var pair = vars[i].split("=");
+                    if (pair[0] === variable) {
+                        return decodeURIComponent(pair[1]);
+                    }
+                }
+                return "";
+            };
+
+            // jsTree文集目录树初始化
+            function initJsTree(r) {
+                $("#doc-jstree").jstree({
+                    "core" : {
+                        "data" : r.data,
+                        "check_callback" : true
+                    },
+                    "plugins" : [ "contextmenu","dnd","wholerow"],
+                    "contextmenu" : {
+                        "items" : function(node) {
+                            return {
+                                view: {
+                                    "label"	: "查看文档",
+                                    "icon"	: "layui-icon layui-icon-read",
+                                    "separator_after":true,
+                                    "action" : function (obj) {
+                                        window.open('/doc/'+node.id+'/', '_blank');
+                                    }
+                                },
+                                create: {
+                                    "label"	: "新建下级文档",
+                                    "icon"	: "layui-icon layui-icon-add-1",
+                                    "separator_after":false,
+                                    "action" : function (obj) {
+                                        let url = `/create_doc/?pid=${pro_id}&parent_id=${node.id}`;
+                                        window.open(url,'_blank');
+                                    }
+                                },
+                                parent: {
+                                    "label"	: "设为上级文档",
+                                    "icon"	: "layui-icon layui-icon-util",
+                                    "separator_after":true,
+                                    "action" : function (obj) {
+                                        selectJstreeParentDoc(node.id,node.text)
+                                    }
+                                },
+                                modify: {
+                                    "label"	: "修改文档",
+                                    "icon"	: "layui-icon layui-icon-edit",
+                                    "separator_after":false,
+                                    "action": function (obj) {
+                                        window.open('/modify_doc/' + node.id + '/','_blank');
+                                    }
+                                },
+                            }
+                        }
+                    },
+                })
+            };
+
+            // jsTree 加载完成事件
+            $('#doc-jstree').on('ready.jstree', function (e, data) {
+                if(current_doc_id){ // 修改文档页面
+                    activeJsTreeCurrentNode();
+                }else{ // 新增文档页面
+                    setJsTreeDefaultParent();
+                }
+            });
+
+            // jsTree节点拖放事件
+            $('#doc-jstree').on('move_node.jstree', function (e, data) {
+                const tree = $('#doc-jstree').jstree(true);
+
+                const nodeId = data.node.id; // 节点ID
+                const parentId = data.parent === '#' ? 0 : data.parent; // 父节点ID
+                const position = data.position; // 新位置索引号
+
+                const siblings = tree.get_node(data.parent).children; // 兄弟节点ID
+
+                const prevId = position > 0 ? siblings[position - 1] : null;
+                const nextId = position < siblings.length - 1 ? siblings[position + 1] : null;
+
+                layer.load(1);
+                $.ajax({
+                    url: "{% url 'api_move_doc_node' %}",
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id: nodeId,
+                        pro_id: pro_id,
+                        parent_id: parentId,
+                        prev_id: prevId,
+                        next_id: nextId
+                    }),
+                    success(r) {
+                        layer.closeAll('loading')
+                        if(r.code != 0){
+                            layer.msg(r.data);
+                            tree.refresh(); // 防止前后端不一致
+                        }
+                    },
+                    error() {
+                        layer.closeAll('loading')
+                        layer.msg('文档排序更新失败');
+                        tree.refresh(); // 防止前后端不一致
+                    }
+                });
+
+            });
+
+            // jstree 设置默认上级文档
+            setJsTreeDefaultParent = function () {
+                var parent_id = getQueryVariable("parent_id");
+                if (parent_id && parent_id !== "") {
+                    // 赋值隐藏字段
+                    $('#parent-doc').val(parent_id);
+
+                    var tree = $('#doc-jstree').jstree(true);
+                    if (!tree) {
+                        console.warn("jstree 实例未找到");
+                        return;
+                    }
+                    var parent_node = tree.get_node(parent_id); // 获取parent_id的节点
+                    if (!parent_node) {
+                        return;
+                    }
+                    var parents = getParentsChain(tree, parent_id); // 所有上级
+                    openParentsChain(tree, parents, function () {
+                        tree.open_node(parent_id); // 展开下级
+                        tree.select_node(parent_id); // 默认选中
+                        var elem = document.getElementById(parent_id);
+                        if (elem) {
+                            elem.scrollIntoView({
+                                block: "center",
+                                behavior: "smooth"
+                            });
+                        }
+                        layer.msg("已设置上级文档为：" + parent_node.text, { icon: 1 });
+                    });
+
+                }
+            };
+
+            // jsTree 高亮当前文档 - 修改文档时调用
+            function activeJsTreeCurrentNode() {
+                if (current_doc_id && current_doc_id !== "") {
+                    // 赋值隐藏字段
+                    $('#parent-doc').val(doc_parent_id);
+
+                    var tree = $('#doc-jstree').jstree(true);
+                    if (!tree) {
+                        console.warn("jstree 实例未找到");
+                        return;
+                    }
+                    var parents = getParentsChain(tree, doc_parent_id); // 所有上级
+                    openParentsChain(tree, parents, function () {
+                        tree.open_node(current_doc_id); // 展开下级
+                        tree.select_node(current_doc_id); // 默认选中
+                        var elem = document.getElementById(current_doc_id);
+                        if (elem) {
+                            elem.scrollIntoView({
+                                block: "center",
+                                behavior: "smooth"
+                            });
+                        }
+                    });
+
+                }
+            };
+
+            // jsTree 获取所有父级节点
+            function getParentsChain(tree, nodeId) {
+                var parents = [];
+                var current = nodeId;
+
+                while (true) {
+                    var parent = tree.get_parent(current);
+                    if (!parent || parent === '#') break;
+                    parents.unshift(parent); // 从根到叶
+                    current = parent;
+                }
+
+                return parents;
+            };
+
+            // jsTree展开所有父级
+            function openParentsChain(tree, parents, done) {
+                if (!parents.length) {
+                    done && done();
+                    return;
+                }
+
+                var id = parents.shift();
+                tree.open_node(id, function () {
+                    openParentsChain(tree, parents, done);
+                });
+            };
+
+            // 选择上级文档 - jstree
+            function selectJstreeParentDoc(doc_id,doc_name){
+                if(!current_doc_id){ // 没有当前文档ID说明是新建文档，直接设置上级文档表单
+                    $('#parent-doc').val(doc_id);
+                    layer.msg("设置上级文档为：" + doc_name,{icon:1})
+                    return
+                }
+                if(doc_id == current_doc_id){
+                    layer.msg("不能选择自身作为上级",{icon:2})
+                    return
+                }
+                var tree = $('#doc-jstree').jstree(true);
+                // 判断所选文档是否为当前文档的下级文档
+                if(tree){
+                    var children_list = tree.get_node(current_doc_id).children_d || [];
+                    if(children_list.indexOf(doc_id.toString()) !== -1){
+                        layer.msg("不能设置文档的下级作为上级",{icon:2})
+                        return
+                    }
+                }
+                $('#parent-doc').val(doc_id);// 设置上级文档
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'api_doc_structure_update' %}",
+                    data: {id:current_doc_id,parent_id:doc_id,pro_id:pro_id},
+                    dataType: "json",
+                    success: function(data){
+                        if(data.code == 0){
+                            layer.msg("修改上级文档为：" + doc_name,{icon:1})
+                            if(tree){
+                                tree.move_node(current_doc_id,doc_id);
+                            }
+                        }else{
+                            layer.msg(data.data,{icon:2})
+                        }
+                    },
+                    error: function () {
+                        layer.msg("修改上级文档请求异常",{icon:2})
+                    }
+                });
+            };
+        </script>
+        <!-- 语雀风格：文档协作者面板 & 保存状态管理脚本 -->
+        <script>
+            (function() {
+                // 时间格式化 HH:MM
+                function formatTime(d) {
+                    var h = ('0' + d.getHours()).slice(-2);
+                    var m = ('0' + d.getMinutes()).slice(-2);
+                    return h + ':' + m;
+                }
+
+                // 全局保存状态更新
+                window.markDocSaved = function() {
+                    window.md_changed = false;
+                    var t = formatTime(new Date());
+                    $('#save-status').text('{% trans "已保存" %}·' + t).removeClass('unsaved').addClass('saved');
+                };
+
+                window.markDocUnsaved = function() {
+                    window.md_changed = true;
+                    $('#save-status').text('{% trans "未保存" %}').removeClass('saved').addClass('unsaved');
+                };
+
+                // HTML 转义
+                function escapeHtml(str) {
+                    if (!str) return '';
+                    return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                }
+
+                // 打开协作者侧滑面板
+                window.openCollabPanel = function(focusShare) {
+                    if (!current_doc_id || current_doc_id === '' || current_doc_id === 'None') {
+                        layer.msg('{% trans "请先保存文档后再添加协作者" %}');
+                        return;
+                    }
+                    $('#collab-panel-mask').fadeIn(200);
+                    $('#collab-panel').show();
+                    setTimeout(function() {
+                        $('#collab-panel').addClass('open');
+                    }, 10);
+                    loadCollabList(focusShare);
+                };
+
+                // 关闭面板
+                window.closeCollabPanel = function() {
+                    $('#collab-panel').removeClass('open');
+                    $('#collab-panel-mask').fadeOut(200);
+                    setTimeout(function() {
+                        $('#collab-panel').hide();
+                    }, 300);
+                };
+
+                // 拉取协作者列表
+                function loadCollabList(focusShare) {
+                    $('#collab-panel').html(
+                        '<div class="collab-panel-header">' +
+                            '<div class="collab-panel-title">{% trans "文档协作者" %}</div>' +
+                            '<a href="javascript:void(0);" class="collab-panel-close" id="collab-panel-close"><i class="layui-icon layui-icon-close"></i></a>' +
+                        '</div>' +
+                        '<div class="collab-panel-body">' +
+                            '<div class="collab-loading" style="text-align:center;padding:40px 0;color:#8c8c8c;"><i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i> {% trans "加载中..." %}</div>' +
+                        '</div>'
+                    );
+                    $.get('/api/doc_colla_list/', {doc_id: current_doc_id}, function(r) {
+                        if (!r.status) {
+                            layer.msg(r.data);
+                            $('#collab-panel').html(
+                                '<div class="collab-panel-header">' +
+                                    '<div class="collab-panel-title">{% trans "文档协作者" %}</div>' +
+                                    '<a href="javascript:void(0);" class="collab-panel-close" id="collab-panel-close"><i class="layui-icon layui-icon-close"></i></a>' +
+                                '</div>' +
+                                '<div class="collab-panel-body"><div class="collab-empty" style="color:#ff4d4f;">' + (r.data || '{% trans "加载失败" %}') + '</div></div>'
+                            );
+                            return;
+                        }
+                        renderCollabPanel(r.data, focusShare);
+                    }).fail(function() {
+                        layer.msg('{% trans "请求协作者信息失败" %}');
+                    });
+                }
+
+                // 渲染面板内容
+                function renderCollabPanel(data, focusShare) {
+                    var owner = data.owner || '';
+                    var members = data.members || [];
+                    var ownerInitial = owner ? owner.charAt(0).toUpperCase() : 'U';
+                    var canManage = data.can_manage !== false;
+
+                    updateToolbarAvatars(owner, members);
+
+                    var membersHtml = '';
+                    // 1. 创建者
+                    membersHtml += '<div class="collab-member-item collab-owner-item">' +
+                        '<div class="collab-user-info">' +
+                            '<span class="collab-avatar">' + ownerInitial + '</span>' +
+                            '<span class="collab-name">' + escapeHtml(owner) + '</span>' +
+                            '<span class="collab-badge-owner">{% trans "创建者" %}</span>' +
+                        '</div>' +
+                    '</div>';
+
+                    // 2. 协作者列表
+                    if (members.length === 0) {
+                        membersHtml += '<div class="collab-empty">{% trans "暂无其他协作者" %}</div>';
+                    } else {
+                        members.forEach(function(m) {
+                            var initial = m.username ? m.username.charAt(0).toUpperCase() : 'U';
+                            var safe = escapeHtml(m.username);
+                            membersHtml += '<div class="collab-member-item">' +
+                                '<div class="collab-user-info">' +
+                                    '<span class="collab-avatar">' + initial + '</span>' +
+                                    '<span class="collab-name" title="' + safe + '">' + safe + '</span>' +
+                                '</div>' +
+                                '<div class="collab-opera">';
+                            if (canManage) {
+                                membersHtml += '<select class="collab-role-select" data-user="' + safe + '">' +
+                                        '<option value="0"' + (m.role == 0 ? ' selected' : '') + '>{% trans "可编辑" %}</option>' +
+                                        '<option value="1"' + (m.role == 1 ? ' selected' : '') + '>{% trans "可管理" %}</option>' +
+                                    '</select>' +
+                                    '<a href="javascript:void(0);" class="collab-remove-btn" data-user="' + safe + '" title="{% trans "移除" %}">{% trans "移除" %}</a>';
+                            } else {
+                                membersHtml += '<span class="collab-role-text">' + (m.role == 1 ? '{% trans "可管理" %}' : '{% trans "可编辑" %}') + '</span>';
+                            }
+                            membersHtml += '</div>' +
+                            '</div>';
+                        });
+                    }
+
+                    var html =
+                        '<div class="collab-panel-header">' +
+                            '<div class="collab-panel-title">{% trans "文档协作者" %}</div>' +
+                            '<a href="javascript:void(0);" class="collab-panel-close" id="collab-panel-close"><i class="layui-icon layui-icon-close"></i></a>' +
+                        '</div>' +
+                        '<div class="collab-panel-body">' +
+                            '<!-- 邀请输入区（仅创建者/可管理协作者可见） -->' +
+                            (canManage ?
+                            '<div class="collab-section">' +
+                                '<div class="collab-section-title">{% trans "添加协作者" %}</div>' +
+                                '<div class="collab-invite-box">' +
+                                    '<input type="text" id="collab-search-input" class="collab-input" placeholder="{% trans "输入用户名邀请协作" %}" autocomplete="off" />' +
+                                    '<select id="collab-role-add" class="collab-role-select">' +
+                                        '<option value="0">{% trans "可编辑" %}</option>' +
+                                        '<option value="1">{% trans "可管理" %}</option>' +
+                                    '</select>' +
+                                    '<button id="collab-invite-btn" class="yq-btn yq-btn-blue" type="button">{% trans "邀请" %}</button>' +
+                                    '<div id="collab-search-dropdown" class="collab-dropdown" style="display:none;"></div>' +
+                                '</div>' +
+                            '</div>' : '') +
+                            '<!-- 协作者列表 -->' +
+                            '<div class="collab-section">' +
+                                '<div class="collab-section-title">{% trans "协作者成员" %} (' + (members.length + 1) + ')</div>' +
+                                '<div class="collab-members-list">' + membersHtml + '</div>' +
+                            '</div>' +
+                            '<!-- 分享链接区（仅创建者/可管理协作者可见） -->' +
+                            (canManage ?
+                            '<div class="collab-section collab-share-section">' +
+                                '<div class="collab-section-title">{% trans "分享链接" %}</div>' +
+                                '<div class="collab-share-row">' +
+                                    '<input type="text" id="collab-share-url" class="collab-input" readonly placeholder="{% trans "点击获取分享链接" %}" />' +
+                                    '<button id="collab-copy-btn" class="yq-btn yq-btn-green" type="button">{% trans "复制链接" %}</button>' +
+                                '</div>' +
+                                '<div class="collab-share-actions">' +
+                                    '<a href="javascript:void(0);" id="collab-get-share-btn" class="collab-action-link">{% trans "获取/刷新链接" %}</a>' +
+                                    '<a href="javascript:void(0);" id="collab-unshare-btn" class="collab-unshare-link">{% trans "关闭分享" %}</a>' +
+                                '</div>' +
+                            '</div>' : '') +
+                        '</div>' +
+                        '<div class="collab-panel-footer">{% trans "协作者可以直接编辑此文档" %}</div>';
+
+                    $('#collab-panel').html(html);
+
+                    if (focusShare) {
+                        loadCollabShare();
+                    }
+                }
+
+                // 更新顶部工具栏头像微件
+                function updateToolbarAvatars(owner, members) {
+                    if (!$('#yq-avatar-stack').length) return;
+                    var stackHtml = '';
+                    var list = [];
+                    if (owner) list.push(owner);
+                    if (members && members.length) {
+                        members.forEach(function(m) {
+                            if (m.username && list.indexOf(m.username) === -1) {
+                                list.push(m.username);
+                            }
+                        });
+                    }
+                    var showList = list.slice(0, 3);
+                    showList.forEach(function(u) {
+                        var initial = u.charAt(0).toUpperCase();
+                        stackHtml += '<span class="yq-avatar-mini" title="' + escapeHtml(u) + '">' + initial + '</span>';
+                    });
+                    if (list.length > 3) {
+                        stackHtml += '<span class="yq-avatar-mini yq-avatar-more">+' + (list.length - 3) + '</span>';
+                    }
+                    $('#yq-avatar-stack').html(stackHtml);
+                }
+
+                // 获取/刷新分享链接
+                function loadCollabShare() {
+                    $.post('/api/doc_colla_share/', {doc_id: current_doc_id}, function(r) {
+                        if (r.status && r.data && r.data.url) {
+                            $('#collab-share-url').val(r.data.url);
+                        } else {
+                            layer.msg(r.data || '{% trans "获取分享链接失败" %}');
+                        }
+                    });
+                }
+
+                // 复制链接
+                function doCopyUrl(url) {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(url).then(function() {
+                            layer.msg('{% trans "链接已复制到剪贴板" %}', {icon: 1});
+                        }).catch(function() {
+                            fallbackCopyUrl(url);
+                        });
+                    } else {
+                        fallbackCopyUrl(url);
+                    }
+                }
+
+                function fallbackCopyUrl(url) {
+                    var ta = document.createElement('textarea');
+                    ta.value = url;
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    ta.style.top = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    try {
+                        var ok = document.execCommand('copy');
+                        if (ok) {
+                            layer.msg('{% trans "链接已复制到剪贴板" %}', {icon: 1});
+                        } else {
+                            layer.msg('{% trans "复制失败，请手动复制" %}');
+                        }
+                    } catch(err) {
+                        layer.msg('{% trans "复制失败，请手动复制" %}');
+                    }
+                    document.body.removeChild(ta);
+                }
+
+                // 统一事件委托绑定
+                $(document).on('click', '#yq-more-btn', function(e) {
+                    e.stopPropagation();
+                    $('#yq-more-menu').toggle();
+                });
+
+                $(document).on('click', function(e) {
+                    if (!$(e.target).closest('#yq-more-menu, #yq-more-btn').length) {
+                        $('#yq-more-menu').hide();
+                    }
+                });
+
+                $(document).on('click', '#collab-panel-mask, #collab-panel-close', function() {
+                    closeCollabPanel();
+                });
+
+                $(document).on('click', '#doc-collaborator-btn, #yq-avatar-stack', function() {
+                    openCollabPanel(false);
+                });
+
+                $(document).on('click', '#doc-share-btn', function() {
+                    openCollabPanel(true);
+                });
+
+                // 搜索防抖 300ms
+                var _search_timer = null;
+                $(document).on('input', '#collab-search-input', function() {
+                    clearTimeout(_search_timer);
+                    var q = $(this).val().trim();
+                    if (!q) {
+                        $('#collab-search-dropdown').hide().empty();
+                        return;
+                    }
+                    _search_timer = setTimeout(function() {
+                        $.post('/api/doc_colla_search/', {doc_id: current_doc_id, q: q}, function(r) {
+                            if (r.status) {
+                                var list = r.data || [];
+                                if (list.length === 0) {
+                                    $('#collab-search-dropdown').html('<div class="collab-dropdown-empty">{% trans "未匹配到用户" %}</div>').show();
+                                } else {
+                                    var itemsHtml = '';
+                                    list.forEach(function(u) {
+                                        var initial = u.username ? u.username.charAt(0).toUpperCase() : 'U';
+                                        var safe = escapeHtml(u.username);
+                                        itemsHtml += '<div class="collab-dropdown-item" data-username="' + safe + '">' +
+                                            '<span class="collab-avatar collab-avatar-sm">' + initial + '</span>' +
+                                            '<span class="collab-dropdown-name">' + safe + '</span>' +
+                                        '</div>';
+                                    });
+                                    $('#collab-search-dropdown').html(itemsHtml).show();
+                                }
+                            } else {
+                                layer.msg(r.data);
+                            }
+                        });
+                    }, 300);
+                });
+
+                $(document).on('click', '.collab-dropdown-item', function() {
+                    var uname = $(this).data('username');
+                    $('#collab-search-input').val(uname);
+                    $('#collab-search-dropdown').hide().empty();
+                });
+
+                $(document).on('click', function(e) {
+                    if (!$(e.target).closest('#collab-search-input, #collab-search-dropdown').length) {
+                        $('#collab-search-dropdown').hide();
+                    }
+                });
+
+                // 添加协作者
+                $(document).on('click', '#collab-invite-btn', function() {
+                    var uname = $('#collab-search-input').val().trim();
+                    var role = $('#collab-role-add').val() || 0;
+                    if (!uname) {
+                        layer.msg('{% trans "请输入用户名" %}');
+                        return;
+                    }
+                    $.post('/api/doc_colla_add/', {doc_id: current_doc_id, username: uname, role: role}, function(r) {
+                        if (r.status) {
+                            layer.msg(r.data || '{% trans "添加成功" %}', {icon: 1});
+                            $('#collab-search-input').val('');
+                            $('#collab-search-dropdown').hide().empty();
+                            $.get('/api/doc_colla_list/', {doc_id: current_doc_id}, function(res) {
+                                if (res.status) renderCollabPanel(res.data);
+                            });
+                        } else {
+                            layer.msg(r.data);
+                        }
+                    });
+                });
+
+                // 修改权限
+                $(document).on('change', '.collab-role-select[data-user]', function() {
+                    var uname = $(this).data('user');
+                    var role = $(this).val();
+                    $.post('/api/doc_colla_role/', {doc_id: current_doc_id, username: uname, role: role}, function(r) {
+                        if (r.status) {
+                            layer.msg(r.data || '{% trans "修改成功" %}', {icon: 1});
+                        } else {
+                            layer.msg(r.data);
+                            $.get('/api/doc_colla_list/', {doc_id: current_doc_id}, function(res) {
+                                if (res.status) renderCollabPanel(res.data);
+                            });
+                        }
+                    });
+                });
+
+                // 移除协作者
+                $(document).on('click', '.collab-remove-btn[data-user]', function() {
+                    var uname = $(this).data('user');
+                    layer.confirm('{% trans "确定移除协作者" %} ' + uname + '？', {
+                        title: '{% trans "提示" %}',
+                        btn: ['{% trans "确定" %}', '{% trans "取消" %}']
+                    }, function(index) {
+                        layer.close(index);
+                        $.post('/api/doc_colla_remove/', {doc_id: current_doc_id, username: uname}, function(r) {
+                            if (r.status) {
+                                layer.msg(r.data || '{% trans "移除成功" %}', {icon: 1});
+                                $.get('/api/doc_colla_list/', {doc_id: current_doc_id}, function(res) {
+                                    if (res.status) renderCollabPanel(res.data);
+                                });
+                            } else {
+                                layer.msg(r.data);
+                            }
+                        });
+                    });
+                });
+
+                // 获取/刷新链接按钮
+                $(document).on('click', '#collab-get-share-btn', function() {
+                    loadCollabShare();
+                });
+
+                // 复制链接按钮
+                $(document).on('click', '#collab-copy-btn', function() {
+                    var url = $('#collab-share-url').val();
+                    if (!url) {
+                        $.post('/api/doc_colla_share/', {doc_id: current_doc_id}, function(r) {
+                            if (r.status && r.data && r.data.url) {
+                                $('#collab-share-url').val(r.data.url);
+                                doCopyUrl(r.data.url);
+                            } else {
+                                layer.msg(r.data || '{% trans "获取分享链接失败" %}');
+                            }
+                        });
+                    } else {
+                        doCopyUrl(url);
+                    }
+                });
+
+                // 关闭分享
+                $(document).on('click', '#collab-unshare-btn', function() {
+                    $.post('/api/doc_colla_unshare/', {doc_id: current_doc_id}, function(r) {
+                        if (r.status) {
+                            $('#collab-share-url').val('');
+                            layer.msg(r.data || '{% trans "已关闭分享" %}', {icon: 1});
+                        } else {
+                            layer.msg(r.data);
+                        }
+                    });
+                });
+
+                // 输入变更监听，更新未保存状态
+                $(document).on('input propertychange', '#doc-name, #content, .CodeMirror, .vditor-reset', function() {
+                    window.markDocUnsaved();
+                });
+
+                // 轮询 md_changed 变量变更
+                var _prev_md_changed = false;
+                setInterval(function() {
+                    if (window.md_changed && !_prev_md_changed) {
+                        window.markDocUnsaved();
+                    }
+                    _prev_md_changed = window.md_changed;
+                }, 500);
+
+                // 初始有文档ID时预拉取协作者头像堆叠
+                if (current_doc_id && current_doc_id !== '' && current_doc_id !== 'None') {
+                    $.get('/api/doc_colla_list/', {doc_id: current_doc_id}, function(r) {
+                        if (r.status && r.data) {
+                            updateToolbarAvatars(r.data.owner, r.data.members);
+                        }
+                    });
+                }
+            })();
+        </script>
+        <!-- 语雀风格：新建页模板首页、最近文档、大纲面板与实时字数统计 -->
+        <script>
+            (function() {
+                // 只有当页面存在标题输入框 #doc-name 时才激活（避免影响无关页面）
+                var $docName = $('#doc-name');
+                if (!$docName.length) {
+                    return;
+                }
+
+                function escapeHtml(str) {
+                    if (!str) return '';
+                    return String(str)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                }
+
+                // 推荐模板数据对象
+                var YUQUE_TEMPLATES = {
+                    meeting: {
+                        title: '{% trans "会议记录" %}',
+                        content: '# {% trans "会议记录" %}\n\n**{% trans "会议主题" %}**：\n**{% trans "会议时间" %}**：\n**{% trans "参会人员" %}**：\n**{% trans "会议主持人" %}**：\n\n---\n\n### 一、{% trans "会议目标" %}\n- \n\n### 二、{% trans "讨论要点" %}\n1. \n2. \n\n### 三、{% trans "结论与决议" %}\n- [ ] {% trans "决议" %} 1：\n- [ ] {% trans "决议" %} 2：\n\n### 四、{% trans "待办事项" %}（Action Items）\n| {% trans "待办事项" %} | {% trans "负责人" %} | {% trans "截止时间" %} | {% trans "状态" %} |\n| :--- | :--- | :--- | :--- |\n| 事项 1 | @ | 2026-XX-XX | {% trans "进行中" %} |\n| 事项 2 | @ | 2026-XX-XX | {% trans "未开始" %} |\n'
+                    },
+                    weekly: {
+                        title: '{% trans "工作周报" %}',
+                        content: '# {% trans "工作周报" %}\n\n**{% trans "报告人" %}**：\n**{% trans "所属部门" %}**：\n**{% trans "周报周期" %}**：2026年第 周\n\n---\n\n### 一、{% trans "本周工作总结" %}\n- **{% trans "重点项目进展" %}**：\n  - 事项 1：完成度 100%，已交付\n  - 事项 2：完成度 80%，推进中\n- **{% trans "日常事务与协同" %}**：\n  - \n\n### 二、{% trans "遇到的问题与风险" %}\n- **问题 1**：\n- **应对方案**：\n\n### 三、{% trans "下周工作计划" %}\n- [ ] {% trans "重点任务" %} 1\n- [ ] {% trans "重点任务" %} 2\n'
+                    },
+                    review: {
+                        title: '{% trans "项目复盘" %}',
+                        content: '# {% trans "项目复盘" %}\n\n**{% trans "项目名称" %}**：\n**{% trans "复盘日期" %}**：\n**{% trans "复盘参与人" %}**：\n\n---\n\n### 一、{% trans "项目背景与目标" %}\n- **{% trans "最初目标" %}**：\n- **{% trans "实际成果" %}**：\n\n### 二、{% trans "里程碑回顾" %}\n1. 阶段一：立项与需求\n2. 阶段二：开发与测试\n3. 阶段三：发布与运营\n\n### 三、{% trans "做得好的地方" %}（Keep）\n- \n\n### 四、{% trans "可以改进的地方" %}（Problem）\n- \n\n### 五、{% trans "后续行动计划" %}（Try）\n- [ ] 改进动作 1\n- [ ] 改进动作 2\n'
+                    },
+                    reading: {
+                        title: '{% trans "读书笔记" %}',
+                        content: '# {% trans "读书笔记" %}\n\n**{% trans "书名" %}**：《》\n**{% trans "作者" %}**：\n**{% trans "阅读周期" %}**：\n**{% trans "个人评分" %}**：★★★★★\n\n---\n\n### 一、{% trans "书籍核心梗概" %}\n> 用一两句话概括核心主题。\n\n### 二、{% trans "精彩观点摘录" %}\n- \n\n### 三、{% trans "思维导图 / 框架梳理" %}\n1. 核心概念\n2. 逻辑推导\n\n### 四、{% trans "个人思考与实践落地" %}\n- **感触最深的一点**：\n- **如何应用到工作与生活**：\n'
+                    },
+                    plan: {
+                        title: '{% trans "个人规划" %}',
+                        content: '# {% trans "个人规划" %}\n\n**{% trans "规划周期" %}**：2026 年度/季度规划\n**{% trans "核心主题" %}**：自我突破与价值创造\n\n---\n\n### 一、{% trans "核心目标" %}（OKR / KPI）\n- **目标 O1**：\n  - KR 1：\n  - KR 2：\n- **目标 O2**：\n  - KR 1：\n  - KR 2：\n\n### 二、{% trans "能力提升计划" %}\n- 专业技能：\n- 通用能力：\n- 阅读与考证：\n\n### 三、{% trans "健康与生活" %}\n- 运动与作息：\n- 财务与家庭：\n\n### 四、{% trans "复盘周期与里程碑" %}\n- 月度自查：每月最后一个周五\n'
+                    }
+                };
+
+                // 判断是否新建文档页（doc-name 存在且值为空）
+                var isNewDoc = !($docName.val() || '').trim();
+
+                if (isNewDoc) {
+                    $('#yuque-dashboard').show();
+                    $('.mrdoc-editor-content').hide();
+                    loadRecentDocs();
+                }
+
+                // 直接进入空白编辑器
+                function enterBlankEditor() {
+                    $('#yuque-dashboard').hide();
+                    $('.mrdoc-editor-content').show();
+                    if (typeof editor !== 'undefined' && editor) {
+                        try {
+                            if (typeof editor.focus === 'function') editor.focus();
+                            if (typeof editor.resize === 'function') editor.resize();
+                        } catch(e) {}
+                    }
+                }
+
+                $(document).on('click', '#yq-start-blank', function() {
+                    enterBlankEditor();
+                });
+
+                // 在新建页标题输入框按回车，进入正文编辑
+                $(document).on('keydown', '#doc-name', function(e) {
+                    if (e.keyCode === 13 && $('#yuque-dashboard').is(':visible')) {
+                        enterBlankEditor();
+                    }
+                });
+
+                // 将 Markdown 填入编辑器
+                function fillEditorContent(content) {
+                    try {
+                        if (editor_mode === 1) {
+                            if (typeof editor !== 'undefined' && editor && typeof editor.insertValue === 'function') {
+                                editor.insertValue(content);
+                            }
+                        } else if (editor_mode === 2) {
+                            if (typeof editor !== 'undefined' && editor && typeof editor.insertValue === 'function') {
+                                editor.insertValue(content);
+                            } else if (typeof editor !== 'undefined' && editor && typeof editor.setValue === 'function') {
+                                editor.setValue(content);
+                            }
+                        } else if (editor_mode === 3) {
+                            if (typeof editor !== 'undefined' && editor && typeof editor.addValue === 'function') {
+                                editor.addValue(content);
+                            }
+                        }
+                    } catch(e) {}
+
+                    $('#yuque-dashboard').hide();
+                    $('.mrdoc-editor-content').show();
+                    if (typeof editor !== 'undefined' && editor) {
+                        try {
+                            if (typeof editor.focus === 'function') editor.focus();
+                            if (typeof editor.resize === 'function') editor.resize();
+                        } catch(e) {}
+                    }
+                    if (typeof window.markDocUnsaved === 'function') {
+                        window.markDocUnsaved();
+                    }
+                }
+
+                // 模板卡片点击
+                $(document).on('click', '.yq-template-card', function() {
+                    var key = $(this).data('template-key');
+                    if (key === 'more') {
+                        window.open('/manage_doctemp/', '_blank');
+                        return;
+                    }
+                    var tpl = YUQUE_TEMPLATES[key];
+                    if (!tpl) return;
+
+                    layer.open({
+                        type: 1,
+                        title: tpl.title + ' - ' + '{% trans "模板预览" %}',
+                        area: ['620px', '460px'],
+                        content: '<div style="padding:16px;height:320px;overflow-y:auto;background:#fafafa;border:1px solid #f0f0f0;margin:12px;border-radius:6px;font-family:Consolas,monospace,sans-serif;font-size:13px;line-height:1.6;white-space:pre-wrap;color:#262626;">' + escapeHtml(tpl.content) + '</div>',
+                        btn: ['{% trans "使用模板" %}', '{% trans "取消" %}'],
+                        btnAlign: 'c',
+                        yes: function(index) {
+                            fillEditorContent(tpl.content);
+                            layer.close(index);
+                            layer.msg('{% trans "模板内容已载入" %}', {icon: 1, time: 1000});
+                        }
+                    });
+                });
+
+                // 拉取最近文档
+                function loadRecentDocs() {
+                    $.get('/api/recent_docs/', {limit: 8}, function(r) {
+                        if (r.status && r.data && r.data.length > 0) {
+                            var html = '';
+                            r.data.forEach(function(doc) {
+                                var safeName = escapeHtml(doc.name || '{% trans "未命名文档" %}');
+                                html += '<div class="yq-recent-item" data-doc-id="' + doc.id + '" title="' + safeName + '">' +
+                                    '<i class="layui-icon layui-icon-file"></i> ' +
+                                    '<span class="yq-recent-title">' + safeName + '</span>' +
+                                '</div>';
+                            });
+                            $('#yuque-recent-list').html(html);
+                        } else {
+                            $('#yuque-recent-list').html('<div class="yq-recent-empty">{% trans "暂无最近编辑的文档" %}</div>');
+                        }
+                    }).fail(function() {
+                        $('#yuque-recent-list').html('<div class="yq-recent-empty">{% trans "暂无最近编辑的文档" %}</div>');
+                    });
+                }
+
+                // 点击最近文档，载入内容
+                $(document).on('click', '.yq-recent-item[data-doc-id]', function() {
+                    var docId = $(this).data('doc-id');
+                    if (!docId) return;
+                    var loadIdx = layer.load(1);
+                    $.post('/api/get_doc_content/', {doc_id: docId}, function(res) {
+                        layer.close(loadIdx);
+                        if (res.status && res.data) {
+                            var mdContent = res.data.pre_content || '';
+                            fillEditorContent(mdContent);
+                            layer.msg('{% trans "已复制文档内容" %}', {icon: 1, time: 1000});
+                        } else {
+                            layer.msg(res.data || '{% trans "获取文档内容失败" %}');
+                        }
+                    }).fail(function() {
+                        layer.close(loadIdx);
+                        layer.msg('{% trans "获取文档内容异常" %}');
+                    });
+                });
+
+                // 实时字数统计
+                $('#yuque-word-count').show();
+                function updateWordCount() {
+                    var titleLen = ($('#doc-name').val() || '').length;
+                    var contentText = '';
+                    try {
+                        if (editor_mode === 1) {
+                            if (typeof editor !== 'undefined' && editor && typeof editor.getMarkdown === 'function') {
+                                contentText = editor.getMarkdown();
+                            }
+                        } else if (editor_mode === 2) {
+                            if (typeof editor !== 'undefined' && editor && typeof editor.getValue === 'function') {
+                                contentText = editor.getValue();
+                            }
+                        } else if (editor_mode === 3) {
+                            if (typeof editor !== 'undefined' && editor && typeof editor.getText === 'function') {
+                                contentText = editor.getText();
+                            }
+                        }
+                    } catch(e) {}
+
+                    var clean = (contentText || '')
+                        .replace(/<[^>]+>/g, '')
+                        .replace(/[`#*~_>+\-\|\[\]\(\)!]/g, ' ')
+                        .replace(/\s+/g, '');
+                    var totalWords = titleLen + clean.length;
+                    $('#yuque-word-count-num').text(totalWords);
+                }
+                setInterval(updateWordCount, 1000);
+
+                // 大纲面板控制与构建
+                window.yuqueToggleOutline = function(forceShow) {
+                    var $panel = $('#yuque-outline-panel');
+                    if (typeof forceShow === 'boolean') {
+                        if (forceShow) {
+                            $panel.show();
+                            window.yuqueBuildOutline();
+                        } else {
+                            $panel.hide();
+                        }
+                    } else {
+                        if ($panel.is(':visible')) {
+                            $panel.hide();
+                        } else {
+                            $panel.show();
+                            window.yuqueBuildOutline();
+                        }
+                    }
+                };
+
+                window.yuqueBuildOutline = function() {
+                    var md = '';
+                    try {
+                        if (editor_mode === 1) {
+                            if (typeof editor !== 'undefined' && editor && typeof editor.getMarkdown === 'function') {
+                                md = editor.getMarkdown();
+                            }
+                        } else if (editor_mode === 2) {
+                            if (typeof editor !== 'undefined' && editor && typeof editor.getValue === 'function') {
+                                md = editor.getValue();
+                            }
+                        }
+                    } catch(e) {}
+
+                    var $list = $('#yuque-outline-list');
+                    if (!$list.length) return;
+
+                    var headings = [];
+                    if (md) {
+                        var lines = md.split('\n');
+                        var inCode = false;
+                        for (var i = 0; i < lines.length; i++) {
+                            var l = lines[i];
+                            if (l.trim().indexOf('```') === 0) {
+                                inCode = !inCode;
+                                continue;
+                            }
+                            if (inCode) continue;
+                            var m = l.match(/^(#{1,3})\s+(.+)$/);
+                            if (m) {
+                                headings.push({
+                                    level: m[1].length,
+                                    text: m[2].trim(),
+                                    line: i + 1
+                                });
+                            }
+                        }
+                    }
+
+                    if (headings.length === 0) {
+                        $list.html('<div class="yq-outline-empty">{% trans "暂无大纲" %}</div>');
+                        return;
+                    }
+
+                    var html = '';
+                    headings.forEach(function(h) {
+                        var safeText = escapeHtml(h.text);
+                        html += '<div class="yq-outline-item yq-outline-level-' + h.level + '" data-line="' + h.line + '" title="' + safeText + '">' +
+                            safeText +
+                        '</div>';
+                    });
+                    $list.html(html);
+                };
+
+                // 大纲面板关闭按钮
+                $(document).on('click', '#yuque-outline-close', function() {
+                    window.yuqueToggleOutline(false);
+                });
+
+                // 点击大纲项跳转
+                $(document).on('click', '.yq-outline-item', function() {
+                    $('.yq-outline-item').removeClass('active');
+                    $(this).addClass('active');
+                    var line = parseInt($(this).data('line'), 10);
+                    if (editor_mode === 1) {
+                        if (typeof editor !== 'undefined' && editor && typeof editor.gotoLine === 'function') {
+                            editor.gotoLine(line);
+                        } else if (typeof editor !== 'undefined' && editor && typeof editor.cm !== 'undefined' && editor.cm && typeof editor.cm.setCursor === 'function') {
+                            editor.cm.setCursor(line - 1, 0);
+                            editor.cm.focus();
+                        }
+                    } else if (editor_mode === 2) {
+                        if (typeof editor !== 'undefined' && editor && typeof editor.focus === 'function') {
+                            editor.focus();
+                        }
+                        layer.msg('{% trans "Vditor 暂不支持大纲跳转" %}', {offset: 'b'});
+                    }
+                });
+
+                // 编辑内容变化时防抖 1 秒重建大纲
+                var _outlineTimer = null;
+                $(document).on('input propertychange', '#content, .CodeMirror, .vditor-reset', function() {
+                    if ($('#yuque-outline-panel').is(':visible')) {
+                        clearTimeout(_outlineTimer);
+                        _outlineTimer = setTimeout(function() {
+                            window.yuqueBuildOutline();
+                        }, 1000);
+                    }
+                });
+            })();
+        </script>
+        {% block custom_script %}
+        {% endblock %}
+    </body>
+</html>

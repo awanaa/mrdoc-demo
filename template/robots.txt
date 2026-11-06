@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /login/
+Disallow: /logout/
+Disallow: /register/
+Disallow: /user_center/
+Disallow: /admin/admin_center/

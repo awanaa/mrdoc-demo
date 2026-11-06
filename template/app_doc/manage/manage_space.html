@@ -1,0 +1,276 @@
+{% extends 'app_doc/user/user_base.html' %}
+{% load static %}
+{% load i18n %}
+{% block title %}{% trans "空间设置" %} - {{ space.name }}{% endblock %}
+
+{% block content %}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-row" style="padding-left:15px;">
+            <span class="layui-breadcrumb" lay-separator=">">
+                <a href="{% url 'pro_list' %}">{% trans "首页" %}</a>
+                <a href="{% url 'space_index' space_id=space.id %}">{{ space.name }}</a>
+                <a><cite>{% trans "空间设置" %}</cite></a>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-tab">
+            <ul class="layui-tab-title">
+                <li class="layui-this">{% trans "基础信息" %}</li>
+                <li>{% trans "权限设置" %}</li>
+                <li>{% trans "管理控制" %}</li>
+            </ul>
+            <div class="layui-tab-content">
+                <!-- 基础信息配置 -->
+                <div class="layui-tab-item layui-show layui-form" lay-filter="space-basic-form">
+                    <div style="max-width: 650px;">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">{% trans "空间名称" %}</label>
+                            <div class="layui-input-inline" style="width: 32px;">
+                                <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="space-icon-select">
+                                    {% if space.icon and space.icon != 'None' %}
+                                        <svg class="icon" aria-hidden="true"><use xlink:href="#{{ space.icon }}"></use></svg>
+                                    {% else %}
+                                        <i class="layui-icon layui-icon-home"></i>
+                                    {% endif %}
+                                </button>
+                                <input type="hidden" name="icon" id="space-icon-val" value="{{ space.icon|default:'' }}"/>
+                                <div class="layui-anim layui-anim-upbit layui-iconpicker hide-project-icon-list" id="space-icon-select-box">
+                                    <div class="layui-iconpicker-list" id="space-icon-list"></div>
+                                </div>
+                            </div>
+                            <div class="layui-input-inline" style="min-width: 320px;">
+                                <input class="layui-input" type="text" id="space-name-input" name="name" value="{{ space.name }}" required lay-verify="required" placeholder="{% trans '输入空间名称' %}">
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">{% trans "封面头像" %}</label>
+                            <div class="layui-input-block">
+                                {% if space.avatar %}
+                                    <div style="margin-bottom: 8px;">
+                                        <img src="{{ space.avatar.url }}" style="width: 48px; height: 48px; border-radius: 6px; object-fit: cover;">
+                                    </div>
+                                {% endif %}
+                                <input type="file" id="space-avatar-file" name="avatar" accept="image/*" class="layui-input" style="padding: 4px;">
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">{% trans "空间简介" %}</label>
+                            <div class="layui-input-block">
+                                <textarea name="desc" id="space-intro-input" placeholder="{% trans '输入空间简介，不超过200个字' %}" maxlength="200" class="layui-textarea">{{ space.intro|default:'' }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="button" class="layui-btn layui-btn-normal" id="save-space-basic-btn">{% trans "保存修改" %}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 权限设置 -->
+                <div class="layui-tab-item layui-form" lay-filter="space-role-form">
+                    <div style="max-width: 650px;">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">{% trans "空间权限" %}</label>
+                            <div class="layui-input-block">
+                                <input type="radio" name="space-role" value="0" title="{% trans '公开' %}" {% if space.role == 0 %}checked{% endif %} lay-filter="space-role-radio">
+                                <input type="radio" name="space-role" value="1" title="{% trans '私密' %}" {% if space.role == 1 %}checked{% endif %} lay-filter="space-role-radio">
+                                <input type="radio" name="space-role" value="4" title="{% trans '登录可见' %}" {% if space.role == 4 %}checked{% endif %} lay-filter="space-role-radio">
+                                <input type="radio" name="space-role" value="2" title="{% trans '指定用户可见' %}" {% if space.role == 2 %}checked{% endif %} lay-filter="space-role-radio">
+                                <input type="radio" name="space-role" value="3" title="{% trans '访问码可见' %}" {% if space.role == 3 %}checked{% endif %} lay-filter="space-role-radio">
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item" id="space-role-value-item" style="{% if space.role != 2 and space.role != 3 %}display: none;{% endif %}">
+                            <label class="layui-form-label" id="space-role-value-label">
+                                {% if space.role == 2 %}{% trans "指定用户" %}{% elif space.role == 3 %}{% trans "访问码" %}{% else %}{% trans "权限值" %}{% endif %}
+                            </label>
+                            <div class="layui-input-block">
+                                <input class="layui-input" type="text" id="space-role-value-input" value="{{ space.role_value|default:'' }}" placeholder="{% trans '指定用户用英文逗号分隔，如：user1,user2' %}">
+                            </div>
+                        </div>
+
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="button" class="layui-btn layui-btn-normal" id="save-space-role-btn">{% trans "保存权限" %}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 管理控制 -->
+                <div class="layui-tab-item">
+                    <div style="max-width: 650px;">
+                        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+                            <legend style="color: red; font-size: 15px;">{% trans "危险区域" %}</legend>
+                        </fieldset>
+                        <div style="background: #FFF1F0; border: 1px solid #FFA39E; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+                            <p style="color: #CF1322; font-size: 13px; line-height: 1.6;">
+                                <i class="layui-icon layui-icon-tips" style="margin-right: 4px;"></i>
+                                {% trans "删除空间不会删除其下的知识库和文档。删除后，所属知识库将转为独立知识库（所属空间置为空）。" %}
+                            </p>
+                        </div>
+                        <button type="button" class="layui-btn layui-btn-danger" id="del-space-btn">
+                            <i class="layui-icon layui-icon-delete"></i> {% trans "删除此空间" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block custom_script %}
+<script src="{% static 'iconFont/iconfont.js' %}?version={{mrdoc_version}}"></script>
+<script>
+layui.use(['form', 'layer'], function(){
+    var form = layui.form;
+    var layer = layui.layer;
+    var $ = layui.$;
+
+    // 动态生成图标列表
+    for(var i = 1; i < 44; i++){
+        var icon_elem = '<div class="layui-iconpicker-icon-item" style="width:20%" data-icon="mrdoc-icon-pro-' + i + '"><svg class="icon" aria-hidden="true"><use xlink:href="#mrdoc-icon-pro-' + i + '"></use></svg></div>';
+        $("#space-icon-list").append(icon_elem);
+    }
+    $("#space-icon-select").click(function(){
+        $("#space-icon-select-box").toggleClass("hide-project-icon-list");
+    });
+    $("#space-icon-list").on("click", ".layui-iconpicker-icon-item", function(e){
+        var selected_icon = e.currentTarget.dataset.icon;
+        var selected_icon_svg = '<svg class="icon" aria-hidden="true"><use xlink:href="#' + selected_icon + '"></use></svg>';
+        $("#space-icon-select").html(selected_icon_svg);
+        $("#space-icon-val").val(selected_icon);
+        $("#space-icon-select-box").toggleClass("hide-project-icon-list");
+    });
+
+    // 监听权限 radio
+    form.on('radio(space-role-radio)', function(data){
+        if(data.value === '2'){
+            $('#space-role-value-item').show();
+            $('#space-role-value-label').text('{% trans "指定用户" %}');
+            $('#space-role-value-input').attr('placeholder', '{% trans "指定用户用英文逗号分隔，如：user1,user2" %}');
+        }else if(data.value === '3'){
+            $('#space-role-value-item').show();
+            $('#space-role-value-label').text('{% trans "访问码" %}');
+            $('#space-role-value-input').attr('placeholder', '{% trans "请输入访问码" %}');
+        }else{
+            $('#space-role-value-item').hide();
+        }
+    });
+
+    // 保存基础信息
+    $('#save-space-basic-btn').click(function(){
+        var name = $.trim($('#space-name-input').val());
+        if(!name){
+            layer.msg('{% trans "空间名称不能为空！" %}');
+            return;
+        }
+        var formData = new FormData();
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        formData.append('name', name);
+        formData.append('icon', $('#space-icon-val').val());
+        formData.append('desc', $('#space-intro-input').val());
+        var avatarFile = $('#space-avatar-file')[0].files[0];
+        if(avatarFile){
+            formData.append('avatar', avatarFile);
+        }
+        layer.load(1);
+        $.ajax({
+            url: "{% url 'modify_space' space_id=space.id %}",
+            type: 'post',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(r){
+                layer.closeAll('loading');
+                if(r.status){
+                    layer.msg('{% trans "修改成功！" %}', {icon: 1});
+                    setTimeout(function(){ window.location.reload(); }, 800);
+                }else{
+                    layer.msg(r.data, {icon: 2});
+                }
+            },
+            error: function(){
+                layer.closeAll('loading');
+                layer.msg('{% trans "修改异常" %}', {icon: 2});
+            }
+        });
+    });
+
+    // 保存权限
+    $('#save-space-role-btn').click(function(){
+        var role = $('input[name=space-role]:checked').val();
+        var role_value = $.trim($('#space-role-value-input').val());
+        if(role === '3' && !role_value){
+            layer.msg('{% trans "访问码不能为空！" %}');
+            return;
+        }
+        layer.load(1);
+        $.ajax({
+            url: "{% url 'modify_space' space_id=space.id %}",
+            type: 'post',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                name: $('#space-name-input').val(),
+                role: role,
+                role_value: role_value
+            },
+            success: function(r){
+                layer.closeAll('loading');
+                if(r.status){
+                    layer.msg('{% trans "权限修改成功！" %}', {icon: 1});
+                }else{
+                    layer.msg(r.data, {icon: 2});
+                }
+            },
+            error: function(){
+                layer.closeAll('loading');
+                layer.msg('{% trans "修改异常" %}', {icon: 2});
+            }
+        });
+    });
+
+    // 删除空间
+    $('#del-space-btn').click(function(){
+        layer.confirm('{% trans "确定要删除此空间吗？其下的知识库将转为独立知识库，文集和文档不会被删除。" %}', {
+            icon: 3,
+            title: '{% trans "提示" %}'
+        }, function(index){
+            layer.close(index);
+            layer.load(1);
+            $.ajax({
+                url: "{% url 'del_space' %}",
+                type: 'post',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    space_id: '{{ space.id }}'
+                },
+                success: function(r){
+                    layer.closeAll('loading');
+                    if(r.status){
+                        layer.msg('{% trans "空间已删除" %}', {icon: 1});
+                        setTimeout(function(){ window.location.href = "{% url 'pro_list' %}"; }, 800);
+                    }else{
+                        layer.msg(r.data, {icon: 2});
+                    }
+                },
+                error: function(){
+                    layer.closeAll('loading');
+                    layer.msg('{% trans "删除异常" %}', {icon: 2});
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

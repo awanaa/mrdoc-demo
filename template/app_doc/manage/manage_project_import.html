@@ -1,0 +1,130 @@
+{% extends 'app_doc/user/user_base.html' %}
+{% load static %}
+{% load i18n %}
+{% block title %}{% trans "导入文集" %}{% endblock %}
+{% block content %}
+<!-- 导入本地文档到文集 -->
+<div class="layui-card">
+    <div class="layui-card-body">
+        <div class="layui-card-header" style="margin-bottom: 10px;">
+            <span style="font-size:18px;">{% trans "导入本地文档到文集" %}</span>
+            <span>（Markdown文集、Word批量、印象笔记、Joplin等导入请使用「MrDoc 文档导入工具箱」）</span>
+        </div>
+        <div>
+            <a style="width: 142px;cursor: pointer;display: inline-block;" href="{% url 'import_doc_to_project' %}">
+                <div style="width: 70px;height: 70px;margin: 0 auto;">
+                    <img src="{% static 'icon_img/file-doc.svg' %}">
+                </div>
+                <div style="text-align: center;">
+                    <div style="color: #262626;font-size:14px;">本地文本文档</div>
+                    <div style="color: #8c8c8c;font-size:12px;">支持Markdown、TXT、Word等格式文件</div>
+                </div>
+            </a>
+            <a style="width: 142px;cursor: pointer;display: inline-block;" href="javascript:void(0);" id="importWordProject">
+                <div style="width: 70px;height: 70px;margin: 0 auto;">
+                    <img src="{% static 'icon_img/office-word.svg' %}" style="width: 70px;height: 70px;">
+                </div>
+                <div style="text-align: center;">
+                    <div style="color: #262626;font-size:14px;">Word文集</div>
+                    <div style="color: #8c8c8c;font-size:12px;">将Word文档导入为文集并按层级标题拆分为文档</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block custom_script %}
+<script src="{% static 'jquery/3.5.0/jquery.min.js' %}"></script>
+<script src="{% static 'layui/layui.js' %}"></script>
+<script>
+    $.ajaxSetup({
+        data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+        headers: {"X-CSRFToken":'{{ csrf_token }}'},
+    });
+    var upload = layui.upload,form=layui.form;
+</script>
+<script>
+$('#importWordProject').on('click', function () {
+    layer.open({
+        type: 1,
+        title: '导入 Word 文集',
+        area: ['450px', '350px'],
+        content: `
+            <div style="padding:20px;">
+                <div style="padding-bottom:10px;">支持设置了规范标题样式的docx格式Word文档，最多拆分6层层级文档；如果文档内未识别出规范样式的标题，将导入为单篇文档。</div>
+                <form class="layui-form" id="importWordProjectForm">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">Word文件</label>
+                        <div class="layui-input-block">
+                            <input type="file" name="docx"
+                                   accept=".docx"
+                                   class="layui-input"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">编辑器</label>
+                        <div class="layui-input-block">
+                            <select name="editor_mode">
+                                <option value="1">Markdown（Editor.md）</option>
+                                <option value="3">富文本</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        `,
+        success: function (layero, index) {
+            var form = layui.form;
+            form.render();
+        },
+        btn: ['开始导入', '取消'],
+        yes: function (index) {
+            submitImportWordProject(index);
+        }
+    });
+});
+</script>
+<script>
+function submitImportWordProject(layerIndex) {
+    let wordForm = document.getElementById('importWordProjectForm');
+    let formData = new FormData(wordForm);
+
+    layer.load(1, {shade: 0.3});
+
+    $.ajax({
+        url: "{% url 'import_word_project' %}",  // 后端接口
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (res) {
+            layer.closeAll('loading');
+            if (res.status) {
+                layer.open({
+                    title: '导入成功',
+                    content: '文集导入成功',
+                    btn:['好的','查看文集'],
+                    btn1: function (index, layero) {
+                        layer.closeAll();
+                        location.reload();
+                    },
+                    btn2: function (index, layero) {
+                        window.open(`/project/${res.pid}/`,'_blank');
+                        layer.closeAll();
+                        location.reload();
+                    }
+                });
+            } else {
+                layer.msg(res.data || '导入失败', {icon: 2});
+            }
+        },
+        error: function () {
+            layer.closeAll('loading');
+            layer.msg('服务器异常', {icon: 2});
+        }
+    });
+}
+</script>
+{% endblock %}

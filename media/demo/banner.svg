@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 200">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7CB9E8"/>
+      <stop offset="100%" stop-color="#4E8A4E"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="200" fill="url(#g)"/>
+  <text x="450" y="92" text-anchor="middle" font-family="sans-serif" font-size="44" fill="#fff" font-weight="bold">MrDoc 示例知识库</text>
+  <text x="450" y="140" text-anchor="middle" font-family="sans-serif" font-size="18" fill="#fff" opacity="0.95">一个脱敏后的演示项目 · 儿童图书与纸艺展示主题</text>
+</svg>

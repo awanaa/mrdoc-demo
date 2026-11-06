@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240">
+  <rect width="320" height="240" fill="#FAFAFA"/>
+  <circle cx="100" cy="80" r="45" fill="#00AEEF" fill-opacity="0.85"/>
+  <circle cx="165" cy="80" r="45" fill="#EC008C" fill-opacity="0.85"/>
+  <circle cx="132" cy="135" r="45" fill="#FFF200" fill-opacity="0.85"/>
+  <circle cx="200" cy="135" r="45" fill="#231815" fill-opacity="0.85"/>
+  <text x="100" y="215" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#666">C</text>
+  <text x="165" y="215" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#666">M</text>
+  <text x="132" y="215" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#666">Y</text>
+  <text x="200" y="215" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#666">K</text>
+</svg>

@@ -1,0 +1,960 @@
+{% load static %}
+{% load i18n %}
+{% load project_filter %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name=renderer  content=webkit>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge，chrome=1">
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <meta http-equiv="Cache-Control" content="max-age=7200" />
+    <meta name="keywords" content="{% if site_keywords != None %}{{site_keywords}}{% endif %}"/>
+    <meta name="description" content="{% if site_desc != None %}{{site_desc}}{% endif %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>{% if site_name != None and site_name != '' %}{{site_name}} {% else %}{% trans "站点标题" %}{% endif %} - {% if site_sub_name != None %}{{site_sub_name}} {% else %}{% trans "示例知识库" %}{% endif %}</title>
+    <link href="{% static 'layui/css/layui.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+    <link href="{% static 'mrdoc/mrdoc.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+    <link href="{% static 'iconFont/iconfont.css' %}?version={{mrdoc_version}}" rel="stylesheet">
+    <link rel="icon" href="{% static 'search/mrdoc_logo_300.png' %}" sizes="192x192" />
+    <style>
+        /* ===== 语雀化首页框架（自包含样式，仅作用于本页） ===== */
+        html, body { margin: 0; padding: 0; height: 100%; background: #fff; color: #262626;
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+        a { text-decoration: none; }
+        .xjy-side { position: fixed; left: 0; top: 0; bottom: 0; width: 254px; background: #FAFAFA;
+            border-right: 1px solid #E7E9E8; display: flex; flex-direction: column; box-sizing: border-box; z-index: 10; }
+        .xjy-main { margin-left: 254px; padding: 0 36px 40px 36px; min-height: 100%; box-sizing: border-box; background: #fff; }
+
+        /* 顶部行 */
+        .xjy-side-top { height: 56px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .xjy-site { font-size: 14px; color: #262626; display: flex; align-items: center; cursor: pointer; font-weight: 500; }
+        .xjy-site .layui-icon { font-size: 10px; color: #8C8C8C; margin-left: 4px; }
+        .xjy-top-right { display: flex; align-items: center; }
+        .xjy-bell { font-size: 16px; color: #595959; margin-right: 12px; cursor: pointer; }
+        .xjy-avatar { width: 24px; height: 24px; border-radius: 50%; background: #BFBFBF; color: #fff; font-size: 12px;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
+        .xjy-avatar .layui-icon { font-size: 14px; color: #fff; }
+        .xjy-avatar.on { background: #E8E8E8; border-radius: 6px; }
+
+        /* 头像下拉菜单 */
+        .xjy-avatar-wrap { position: relative; }
+        .xjy-avatar-menu { position: absolute; top: 40px; left: -12px; width: 307px; background: #fff; border: 1px solid #E7E9E8;
+            border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.14); padding: 10px 12px 8px; z-index: 200; display: none; }
+        .am-user { display: flex; align-items: center; padding: 4px 10px 12px; border-radius: 6px; }
+        .am-user:hover { background: #F5F5F5; }
+        .am-avatar { width: 36px; height: 36px; font-size: 16px; margin-right: 10px; flex-shrink: 0; cursor: default; }
+        .am-name { font-size: 14px; color: #262626; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .am-item { display: flex; align-items: center; height: 40px; padding: 0 10px; border-radius: 6px; font-size: 14px; color: #262626; }
+        .am-item:hover { background: #F5F5F5; color: #262626; }
+        .am-item .layui-icon, .am-item .am-svg { width: 16px; height: 16px; font-size: 16px; margin-right: 10px; color: #595959; flex-shrink: 0; }
+        .am-divider { height: 1px; background: #EEEEEE; margin: 8px 10px; }
+        .am-bottom { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px 8px; }
+        .am-logout { display: flex; align-items: center; height: 32px; font-size: 13px; color: #262626; cursor: pointer; }
+        .am-logout:hover { color: #00B96B; }
+        .am-logout svg { width: 15px; height: 15px; margin-right: 8px; flex-shrink: 0; }
+        .am-right { display: flex; align-items: center; gap: 12px; }
+        .am-lang, .am-theme { width: 32px; height: 32px; border: 1px solid #E7E9E8; border-radius: 6px; font-size: 13px; color: #262626;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; }
+        .am-theme svg { width: 16px; height: 16px; }
+
+        /* 搜索行 */
+        .xjy-search-row { padding: 0 12px; display: flex; align-items: center; margin-bottom: 18px; flex-shrink: 0; }
+        .xjy-search-row form { flex: 1; margin: 0; min-width: 0; }
+        .xjy-search { display: flex; align-items: center; height: 32px; background: #F0F0F0; border-radius: 6px; padding: 0 8px; box-sizing: border-box; }
+        .xjy-search .layui-icon { font-size: 16px; color: #595959; margin-right: 6px; }
+        .xjy-search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font-size: 13px; color: #262626; }
+        .xjy-search input::placeholder { color: #BFBFBF; }
+        .xjy-search .xjy-kbd { font-size: 12px; color: #BFBFBF; margin-left: 6px; white-space: nowrap; }
+        .xjy-add-btn { width: 32px; height: 32px; margin-left: 8px; border-radius: 6px; background: #F0F0F0; border: 1px solid #E7E9E8;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: #262626; flex-shrink: 0; box-sizing: border-box; }
+        .xjy-add-btn:hover { background: #E8E8E8; }
+
+        /* 导航组 */
+        .xjy-nav { padding: 0 10px; flex-shrink: 0; }
+        .xjy-nav-item { display: flex; align-items: center; height: 32px; padding: 0 10px; border-radius: 6px; font-size: 14px;
+            color: #262626; cursor: pointer; margin-bottom: 2px; }
+        .xjy-nav-item:hover { background: #F0F0F0; color: #262626; }
+        .xjy-nav-item.active { background: #EBEBEB; }
+        .xjy-nav-item .xjy-ico .layui-icon { color: #262626; }
+        .xjy-nav-item .xjy-ico .ico-time { -webkit-text-stroke: .6px #262626; }
+        .xjy-nav-item .xjy-ico svg { width: 15px; height: 15px; display: block; }
+        .xjy-grid4 { width: 14px; height: 14px; display: grid; grid-template-columns: 6px 6px; gap: 2px; }
+        .xjy-grid4 i { display: block; width: 6px; height: 6px; border: 1.5px solid #262626; border-radius: 50%; box-sizing: border-box; }
+        .xjy-nav-item .xjy-ico { width: 18px; margin-right: 8px; text-align: center; font-size: 16px; color: #262626; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+        .xjy-ai-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%;
+            background: #00B96B; color: #fff; font-size: 9px; font-weight: 700; line-height: 1; flex-shrink: 0; }
+
+        /* 知识库分组 */
+        .xjy-kb { padding: 0 12px; margin-top: 24px; flex: 1; min-height: 0; overflow-y: auto; }
+        .xjy-kb-title { display: flex; align-items: center; height: 34px; padding: 0 8px; margin-bottom: 6px; font-size: 14px; color: #262626; cursor: default; }
+        .xjy-kb-title .tri { font-size: 14px; color: #595959; width: 18px; margin-right: 8px; text-align: center; }
+        .xjy-kb-title .txt { flex: 1; }
+        .xjy-kb-title .arrow { font-size: 12px; color: #8C8C8C; }
+        .xjy-kb-item { display: flex; align-items: center; height: 32px; padding: 0 10px 0 22px; border-radius: 6px; font-size: 13px; color: #262626; margin-bottom: 1px; }
+        .xjy-kb-item:hover { background: #F0F0F0; color: #262626; }
+        .xjy-kb-item .layui-icon { font-size: 16px; color: #3A7BD5; margin-right: 8px; flex-shrink: 0; }
+        .xjy-kb-item .name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xjy-kb-item .layui-icon.lock { font-size: 12px; color: #8C8C8C; margin: 0 0 0 4px; }
+
+        /* 底部更多 */
+        .xjy-more { height: 44px; padding: 0 20px 10px 20px; box-sizing: border-box; display: flex; align-items: center; font-size: 14px; color: #262626; cursor: pointer; flex-shrink: 0; }
+        .xjy-more .ico-circle { width: 16px; height: 16px; border: 1.5px solid #262626; border-radius: 50%; box-sizing: border-box; margin-right: 8px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .xjy-more .ico-circle .layui-icon { margin: 0; font-size: 10px; line-height: 1; color: #262626; }
+
+        /* 主内容区 */
+        .xjy-h1 { font-size: 18px; font-weight: 400; color: #262626; margin: 0; padding-top: 24px; line-height: 32px; }
+        .xjy-quick { display: grid; grid-template-columns: repeat(4, minmax(0, 258px)); gap: 12px; margin-top: 20px; }
+        .xjy-card { display: flex; align-items: center; height: 54px; padding: 0 14px 0 16px; box-sizing: border-box; background: #fff;
+            border: 1px solid #E7E9E8; border-radius: 6px; box-shadow: 0 1px 1px rgba(0,0,0,.03); cursor: pointer; color: #262626; }
+        .xjy-card:hover { background: #FAFAFA; color: #262626; }
+        .xjy-card-ico { position: relative; width: 24px; height: 24px; margin-right: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 22px; color: #595959; }
+        .xjy-card-ico .corner { position: absolute; right: -4px; bottom: -3px; width: 10px; height: 10px; border-radius: 50%; color: #fff;
+            font-size: 8px; line-height: 10px; text-align: center; font-weight: 700; }
+        .xjy-card-ico .corner.blue { background: #3A7BD5; }
+        .xjy-card-ico .corner.top { bottom: auto; top: -3px; }
+        .xjy-card-ico .corner.green { background: #00B96B; }
+        .xjy-card-ico .grad { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, #FF6B6B 0%, #FFD93D 50%, #4D96FF 100%); }
+        .xjy-card-ico .xjy-ai-badge { width: 22px; height: 22px; font-size: 11px; }
+        .xjy-card-text { flex: 1; min-width: 0; line-height: 1.35; }
+        .xjy-card-text .t { font-size: 13px; color: #262626; }
+        .xjy-card-text .s { margin-top: 2px; font-size: 12px; color: #8C8C8C; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .xjy-card .more { font-size: 12px; color: #595959; margin-left: 6px; }
+
+        .xjy-h2 { font-size: 18px; font-weight: 400; color: #262626; margin: 30px 0 0 0; line-height: 32px; }
+        .xjy-toolbar { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+        .xjy-tabs { display: inline-flex; background: #F5F5F5; border-radius: 6px; padding: 2px; height: 36px; box-sizing: border-box; }
+        .xjy-tab { padding: 0 17px; font-size: 13px; color: #262626; border-radius: 6px; cursor: pointer; line-height: 32px; height: 32px; user-select: none; }
+        .xjy-tab.active { background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+        .xjy-filters { display: flex; align-items: center; }
+        .xjy-filter { font-size: 13px; color: #262626; margin-left: 20px; cursor: pointer; }
+        .xjy-filter .layui-icon { font-size: 12px; color: #595959; margin-left: 2px; }
+
+        .xjy-list { margin-top: 16px; }
+        .xjy-row { display: flex; align-items: center; height: 65px; border-bottom: 1px solid #EEEEEE; box-sizing: border-box; }
+        .xjy-row:hover { background: #FAFAFA; }
+        .xjy-row .doc { flex: 0 0 47%; min-width: 0; padding-right: 12px; box-sizing: border-box; display: flex; align-items: center; }
+        .xjy-row .doc .iconfont { font-size: 20px; color: #3A7BD5; margin-right: 16px; flex-shrink: 0; }
+        .xjy-row .doc a { font-size: 14px; color: #262626; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xjy-row .meta { flex: 0 0 32%; min-width: 0; font-size: 13px; color: #8C8C8C; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xjy-row .date { flex: 0 0 21%; text-align: left; font-size: 13px; color: #8C8C8C; }
+        .xjy-empty { padding: 24px 0; color: #999; font-size: 13px; }
+
+        /* 新建文集弹窗内部样式 */
+        .layui-form-label{ width: 30px !important; }
+        .layui-input-block{ margin-left: 60px !important; }
+
+        /* ===== 功能后补：新增样式 ===== */
+        .xjy-kb-cat { display: flex; align-items: center; height: 30px; padding: 0 10px 0 8px; margin-bottom: 1px; border-radius: 6px; font-size: 13px; color: #595959; cursor: pointer; user-select: none; }
+        .xjy-kb-cat:hover { background: #F0F0F0; }
+        .xjy-kb-cat .cat-tri { font-size: 10px; width: 14px; margin-right: 6px; text-align: center; color: #8C8C8C; transition: transform .15s; }
+        .xjy-kb-cat.open .cat-tri { transform: rotate(90deg); }
+        .xjy-kb-cat .cat-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xjy-kb-cat .cat-count { font-size: 12px; color: #BFBFBF; }
+        .xjy-kb-cat-list .xjy-kb-item { padding-left: 28px; }
+        .xjy-kb-item .xjy-pro-svg { width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0; }
+        .xjy-kb-extra { display: none; }
+        .xjy-kb.show-all .xjy-kb-extra { display: flex; }
+        .xjy-kb-empty { padding: 6px 8px 6px 22px; font-size: 13px; color: #BFBFBF; }
+        .xjy-search .xjy-clear { color: #8C8C8C; font-size: 16px; line-height: 1; margin-left: 4px; cursor: pointer; }
+        .xjy-search .xjy-clear:hover { color: #262626; }
+        .xjy-bell-wrap { position: relative; display: inline-flex; align-items: center; }
+        .xjy-bell-pop { display: none; position: absolute; top: 30px; right: -8px; width: 220px; background: #fff; border: 1px solid #E7E9E8;
+            border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.14); padding: 12px 16px 16px; z-index: 200; }
+        .xjy-bell-pop .bp-h { font-size: 14px; color: #262626; font-weight: 500; padding-bottom: 8px; border-bottom: 1px solid #EEEEEE; }
+        .xjy-bell-pop .bp-empty { padding: 24px 0 8px; text-align: center; font-size: 13px; color: #BFBFBF; }
+        .xjy-filter { position: relative; }
+        .xjy-filter.active .flabel { color: #00B96B; }
+        .xjy-fpop { display: none; position: absolute; top: 28px; right: 0; min-width: 140px; max-height: 260px; overflow-y: auto; background: #fff;
+            border: 1px solid #E7E9E8; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.14); padding: 6px; z-index: 100; }
+        .xjy-fopt { height: 32px; line-height: 32px; padding: 0 10px; border-radius: 6px; font-size: 13px; color: #262626; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .xjy-fopt:hover { background: #F5F5F5; }
+        .xjy-fopt.sel { color: #00B96B; }
+        .xjy-search-tip { margin-top: 8px; font-size: 13px; color: #8C8C8C; }
+        .xjy-search-tip a { color: #00B96B; }
+        .xjy-pro-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+        .xjy-pro-grid .xjy-empty { grid-column: 1 / -1; }
+        .xjy-pro-card { display: block; padding: 14px 16px; background: #fff; border: 1px solid #E7E9E8; border-radius: 6px; box-shadow: 0 1px 1px rgba(0,0,0,.03); color: #262626; min-width: 0; }
+        .xjy-pro-card:hover { background: #FAFAFA; color: #262626; }
+        .xjy-pro-card .pt { display: flex; align-items: center; font-size: 14px; }
+        .xjy-pro-card .pt .layui-icon, .xjy-pro-card .pt .xjy-pro-svg { color: #3A7BD5; font-size: 16px; width: 16px; height: 16px; margin-right: 8px; flex-shrink: 0; }
+        .xjy-pro-card .pt .pn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xjy-pro-card .pt .lock { color: #8C8C8C; font-size: 12px; margin: 0 0 0 4px; }
+        .xjy-pro-card .pd { margin-top: 6px; font-size: 12px; color: #8C8C8C; min-height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .xjy-pro-card .pm { margin-top: 6px; font-size: 12px; color: #BFBFBF; }
+        .xjy-pro-card .pm .xjy-pro-gear { margin-left: 8px; }
+        /* 卡片/知识库条目上的「设置」齿轮按钮（仅创建者/管理员可见） */
+        .xjy-pro-gear { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;
+            border-radius: 6px; color: #8C8C8C; font-size: 14px; flex-shrink: 0; cursor: pointer; }
+        .xjy-pro-gear:hover { background: #E8F5EE; color: #00B96B; }
+        .xjy-pro-card .pt { position: relative; padding-right: 28px; }
+        .xjy-pro-card .pt .xjy-pro-gear { position: absolute; right: 0; top: 50%; margin-top: -12px; opacity: 0; transition: opacity .15s; }
+        .xjy-pro-card:hover .pt .xjy-pro-gear { opacity: 1; }
+        .xjy-kb-item { position: relative; }
+        .xjy-kb-item .xjy-pro-gear { position: absolute; right: 8px; top: 50%; margin-top: -12px; opacity: 0; transition: opacity .15s; }
+        .xjy-kb-item:hover .xjy-pro-gear { opacity: 1; }
+        .xjy-kb-item.xjy-kb-has-gear .name { margin-right: 26px; }
+        /* 分类下拉 + 新建分类 */
+        .xjy-cat-pick { display: flex; align-items: center; }
+        .xjy-cat-pick select { flex: 1; min-width: 0; height: 32px; }
+        .xjy-cat-pick .xjy-cat-new { margin-left: 8px; flex-shrink: 0; }
+        @media screen and (max-width: 768px){
+            .xjy-pro-grid { grid-template-columns: 1fr; }
+        }
+
+        /* 移动端：边栏隐藏 */
+        @media screen and (max-width: 768px){
+            .xjy-side { display: none; }
+            .xjy-main { margin-left: 0; padding: 0 16px 40px 16px; }
+            .xjy-quick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .xjy-row .meta { display: none; }
+            .xjy-filters { display: none; }
+            .xjy-tabs { max-width: 100%; overflow-x: auto; }
+            .xjy-tab { padding: 4px 10px; white-space: nowrap; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 左侧边栏 -->
+<aside class="xjy-side">
+    <!-- 顶部行 -->
+    <div class="xjy-side-top">
+        <div class="xjy-site">{% if site_name != None and site_name != '' %}{{ site_name }}{% else %}MrDoc{% endif %}<i class="layui-icon layui-icon-triangle-d"></i></div>
+        <div class="xjy-top-right">
+            <span class="xjy-bell-wrap"><i class="layui-icon layui-icon-notice xjy-bell" title="通知" onclick="xjyBell(event)"></i><div class="xjy-bell-pop" id="xjyBellPop"><div class="bp-h">通知</div><div class="bp-empty">暂无通知</div></div></span>
+            {% if request.user.is_authenticated %}
+            <div class="xjy-avatar-wrap">
+                <div class="xjy-avatar" title="{{ request.user.username }}" onclick="xjyToggleMenu(event)">{{ request.user.username|first|upper }}</div>
+                <div class="xjy-avatar-menu" id="xjyAvatarMenu">
+                    <a class="am-user" href="{% url 'user_center' %}">
+                        <span class="xjy-avatar am-avatar">{{ request.user.username|first|upper }}</span>
+                        <span class="am-name">{{ request.user.username }}</span>
+                    </a>
+                    <a class="am-item" href="{% url 'user_center' %}"><svg class="am-svg" viewBox="0 0 16 16" fill="none" stroke="#595959" stroke-width="1.5"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.5"></rect><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.5"></rect><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.5"></rect><rect x="9" y="9" width="5.5" height="5.5" rx="1.5"></rect></svg>我的花园</a>
+                    <a class="am-item" href="{% url 'create_doc' %}"><svg class="am-svg" viewBox="0 0 16 16" fill="none" stroke="#595959" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 13.5l4-6 4 3.5 5-8.5"></path></svg>创作中心</a>
+                    <a class="am-item" href="{% url 'manage_self' %}"><i class="layui-icon layui-icon-set"></i>设置</a>
+                    <div class="am-divider"></div>
+                    <div class="am-bottom">
+                        <span class="am-logout" onclick="xjyLogout()"><svg viewBox="0 0 16 16" fill="none" stroke="#595959" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2H3.5A1.5 1.5 0 0 0 2 3.5v9A1.5 1.5 0 0 0 3.5 14H6"></path><path d="M9.5 4.5L13 8l-3.5 3.5"></path><path d="M13 8H6"></path></svg>退出登录</span>
+                        <span class="am-right"><span class="am-lang" onclick="xjyComing('语言切换开发中')">En</span><span class="am-theme" onclick="xjyComing('主题切换开发中')"><svg viewBox="0 0 16 16" fill="none" stroke="#595959" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="3"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4"></path></svg></span></span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <a class="xjy-avatar" href="{% url 'login' %}" title="登录"><i class="layui-icon layui-icon-username"></i></a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 搜索行 -->
+    <div class="xjy-search-row">
+        <form method="get" action="/">
+            <div class="xjy-search">
+                <i class="layui-icon layui-icon-search"></i>
+                <input type="text" name="kw" id="search-project" placeholder="{% trans '搜索' %}" value="{{ kw }}" autocomplete="off">
+                {% if kw %}<a class="xjy-clear" href="/?kw=" title="清空搜索">×</a>{% else %}<span class="xjy-kbd">Ctrl J</span>{% endif %}
+            </div>
+        </form>
+        <div class="xjy-add-btn" title="{% trans '新建文集' %}" onclick="createPro()"><i class="layui-icon layui-icon-add-1"></i></div>
+    </div>
+
+    <!-- 主导航组 -->
+    <nav class="xjy-nav">
+        <a class="xjy-nav-item active" href="/"><span class="xjy-ico"><i class="layui-icon layui-icon-time ico-time"></i></span>开始</a>
+        <a class="xjy-nav-item" href="javascript:;" onclick="xjyOpenAI()"><span class="xjy-ico"><span class="xjy-ai-badge">AI</span></span>AI 写作</a>
+        <a class="xjy-nav-item" href="javascript:;" onclick="xjyComingAuth('小记功能开发中，敬请期待')"><span class="xjy-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg></span>小记</a>
+        <a class="xjy-nav-item" href="{% url 'my_collect' %}"><span class="xjy-ico"><i class="layui-icon layui-icon-star"></i></span>收藏</a>
+        <a class="xjy-nav-item" href="javascript:;" onclick="xjyComingAuth('逛逛功能开发中，敬请期待')"><span class="xjy-ico"><span class="xjy-grid4"><i></i><i></i><i></i><i></i></span></span>逛逛</a>
+    </nav>
+
+    <!-- 空间区块：已按「只用文集分类」方案移除 -->
+
+    <!-- 知识库分组（按分类渲染，默认折叠，点击分类名展开） -->
+    <div class="xjy-kb" style="margin-top: 12px;">
+        <div class="xjy-kb-title">
+            <i class="layui-icon layui-icon-triangle-d tri"></i>
+            <span class="txt">知识库</span>
+            <i class="layui-icon layui-icon-right arrow"></i>
+        </div>
+        {% for cat_name, cat_projects in project_groups.items %}
+        <div class="xjy-kb-group">
+            <div class="xjy-kb-cat" onclick="xjyToggleCat(this)">
+                <i class="layui-icon layui-icon-right cat-tri"></i>
+                <span class="cat-name">{{ cat_name }}</span>
+                <span class="cat-count">{{ cat_projects|length }}</span>
+            </div>
+            <div class="xjy-kb-cat-list" style="display:none;">
+                {% for p in cat_projects %}
+                <a class="xjy-kb-item{% if forloop.counter > 8 %} xjy-kb-extra{% endif %}{% if request.user.is_superuser or request.user == p.create_user %} xjy-kb-has-gear{% endif %}" href="{% url 'pro_index' pro_id=p.id %}" title="{{ p.name }}">
+                    {% if p.icon and p.icon != 'None' %}<svg class="icon xjy-pro-svg" aria-hidden="true"><use xlink:href="#{{ p.icon }}"></use></svg>{% else %}<i class="layui-icon layui-icon-read"></i>{% endif %}
+                    <span class="name">{{ p.name }}</span>
+                    {% if p.role == 1 %}<i class="layui-icon layui-icon-password lock"></i>{% endif %}
+                    {% if request.user.is_superuser or request.user == p.create_user %}
+                    <span class="xjy-pro-gear" title="{% trans '文集设置' %}" onclick="xjyGoProSettings(event, {{ p.id }})"><i class="layui-icon layui-icon-set"></i></span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="xjy-kb-empty">暂无知识库</div>
+        {% endfor %}
+    </div>
+
+    <!-- 底部更多 -->
+    <div class="xjy-more" onclick="xjyMore()"><span class="ico-circle"><i class="layui-icon layui-icon-more"></i></span><span class="more-txt">更多</span></div>
+</aside>
+<!-- 左侧边栏结束 -->
+
+<!-- 主内容区 -->
+<main class="xjy-main">
+    <h1 class="xjy-h1">开始</h1>
+
+    <!-- 快捷入口卡片 -->
+    <div class="xjy-quick">
+        <a class="xjy-card" href="/create_doc/">
+            <span class="xjy-card-ico"><i class="iconfont mrdoc-icon-wendang"></i><span class="corner blue">+</span></span>
+            <span class="xjy-card-text"><div class="t">新建文档</div><div class="s">文档、表格、画板、数据表</div></span>
+            <i class="layui-icon layui-icon-down more"></i>
+        </a>
+        <a class="xjy-card" href="javascript:;" onclick="createPro()">
+            <span class="xjy-card-ico"><i class="layui-icon layui-icon-read"></i><span class="corner green top">+</span></span>
+            <span class="xjy-card-text"><div class="t">新建知识库</div><div class="s">使用知识库整理知识</div></span>
+        </a>
+        <a class="xjy-card" href="javascript:;" onclick="xjyGoAuth('{% url 'manage_doctemp' %}')">
+            <span class="xjy-card-ico"><span class="grad"></span></span>
+            <span class="xjy-card-text"><div class="t">模板中心</div><div class="s">从模板中获取灵感</div></span>
+        </a>
+        <a class="xjy-card" href="javascript:;" onclick="xjyOpenAI()">
+            <span class="xjy-card-ico"><span class="xjy-ai-badge">AI</span></span>
+            <span class="xjy-card-text"><div class="t">AI 帮你写</div><div class="s">AI 助手帮你一键生成文档</div></span>
+        </a>
+    </div>
+
+    {% if kw %}
+    <!-- 搜索结果：匹配的文集卡片 -->
+    <h2 class="xjy-h2">搜索结果</h2>
+    <div class="xjy-search-tip">关键词「{{ kw }}」匹配的文集 · <a href="/?kw=">清空搜索</a> · 按文档内容搜索请到 <a href="{% url 'search' %}?kw={{ kw|urlencode }}">搜索页</a></div>
+    <div class="xjy-pro-grid">
+        {% for p in project_list|slice:":60" %}
+        <a class="xjy-pro-card" href="{% url 'pro_index' pro_id=p.id %}" title="{{ p.name }}">
+            <div class="pt">
+                {% if p.icon and p.icon != 'None' %}<svg class="icon xjy-pro-svg" aria-hidden="true"><use xlink:href="#{{ p.icon }}"></use></svg>{% else %}<i class="layui-icon layui-icon-read"></i>{% endif %}
+                <span class="pn">{{ p.name }}</span>
+                {% if p.role == 1 %}<i class="layui-icon layui-icon-password lock"></i>{% endif %}
+                {% if request.user.is_superuser or request.user == p.create_user %}
+                <span class="xjy-pro-gear" title="{% trans '文集设置' %}" onclick="xjyGoProSettings(event, {{ p.id }})"><i class="layui-icon layui-icon-set"></i></span>
+                {% endif %}
+            </div>
+            <div class="pd">{% if p.intro %}{{ p.intro|project_desc|slice:'60' }}{% else %}此文集没有填写简介{% endif %}</div>
+            <div class="pm">{{ p.create_user.username }}</div>
+        </a>
+        {% empty %}
+        <div class="xjy-empty">没有匹配的文集</div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <h2 class="xjy-h2">文档</h2>
+
+    <!-- 工具条 -->
+    <div class="xjy-toolbar">
+        <div class="xjy-tabs" id="xjy-tabs">
+            <div class="xjy-tab active" data-tab="edited">编辑过</div>
+            <div class="xjy-tab" data-tab="viewed">浏览过</div>
+            <div class="xjy-tab" data-tab="liked">我点赞的</div>
+            <div class="xjy-tab" data-tab="commented">我评论过</div>
+        </div>
+        <div class="xjy-filters">
+            <div class="xjy-filter" data-key="type" data-label="类型"><span class="flabel">类型</span> <i class="layui-icon layui-icon-down"></i>
+                <div class="xjy-fpop">
+                    <div class="xjy-fopt sel" data-val="">全部</div>
+                    <div class="xjy-fopt" data-val="doc">文档</div>
+                </div>
+            </div>
+            <div class="xjy-filter" data-key="pro" data-label="归属"><span class="flabel">归属</span> <i class="layui-icon layui-icon-down"></i>
+                <div class="xjy-fpop">
+                    <div class="xjy-fopt sel" data-val="">全部</div>
+                    {% for p in project_list %}<div class="xjy-fopt" data-val="{{ p.id }}">{{ p.name }}</div>{% endfor %}
+                </div>
+            </div>
+            <div class="xjy-filter" data-key="author" data-label="创建者"><span class="flabel">创建者</span> <i class="layui-icon layui-icon-down"></i>
+                <div class="xjy-fpop" id="xjyFpopAuthor">
+                    <div class="xjy-fopt sel" data-val="">全部</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文档列表 -->
+    <div class="xjy-list">
+        {% for d in recent_docs %}
+        <div class="xjy-row" data-pro="{{ d.top_doc }}" data-author="{{ d.create_user.username }}">
+            <div class="doc">
+                <i class="iconfont mrdoc-icon-wendang"></i>
+                <a href="{% url 'doc_id' doc_id=d.id %}" title="{{ d.name }}">{{ d.name }}</a>
+            </div>
+            <div class="meta">{{ d.create_user.username }} / {% for p in project_list %}{% if p.id == d.top_doc %}{{ p.name }}{% endif %}{% endfor %}</div>
+            <div class="date">{{ d.modify_time|date:"Y-m-d" }}</div>
+        </div>
+        {% empty %}
+        <div class="xjy-empty">暂无文档</div>
+        {% endfor %}
+        <div class="xjy-empty" id="xjy-filter-empty" style="display:none;">暂无文档</div>
+    </div>
+    {% endif %}
+</main>
+<!-- 主内容区结束 -->
+
+<!-- 新建文集div块 -->
+<div style="padding: 20px;display:none;" id="create-project-div">
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">图标</label>
+            <div class="layui-input-block">
+                <button class="layui-btn layui-btn-primary layui-btn-sm" id="project-icon-select">
+                    <i class="layui-icon layui-icon-addition"></i>
+                </button>
+                <input type="hidden" name="picon" id="picon" />
+                <div class="layui-anim layui-anim-upbit layui-iconpicker hide-project-icon-list" id="project-icon-select-box">
+                    <div class="layui-iconpicker-list" id="mrdoc-project-icon-list">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-block">
+                <input class="layui-input" type="text" id="pname" style="margin-bottom:10px;" placeholder="输入文集名" required  lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">简介</label>
+            <div class="layui-input-block">
+                <textarea name="desc" id="desc" placeholder="输入文集简介，不超过100个字，超出将被截断"  maxlength="100" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">分类</label>
+            <div class="layui-input-block">
+                <div class="xjy-cat-pick">
+                    <select id="pcategory" name="category">
+                        <option value="">未分类</option>
+                        {% for c in category_list %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="layui-btn layui-btn-primary layui-btn-sm xjy-cat-new" id="xjy-cat-new-btn">+ 新建分类</button>
+                </div>
+                <div class="xjy-cat-new-input" id="xjy-cat-new-input" style="display:none; margin-top: 8px;">
+                    <div class="layui-input-inline" style="min-width: 200px;">
+                        <input class="layui-input" type="text" id="pcategory-new" placeholder="输入新分类名">
+                    </div>
+                    <button type="button" class="layui-btn layui-btn-sm" id="xjy-cat-new-ok">确定</button>
+                    <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" id="xjy-cat-new-cancel">取消</button>
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">权限</label>
+            <div class="layui-input-block">
+                <input type="radio" name="project-role" value="0" title="公开" checked>
+                <input type="radio" name="project-role" value="1" title="私密">
+            </div>
+        </div>
+        <div style="color:red;font-size:12px;">{% trans "*可在个人中心对文集权限进行进一步控制" %}</div>
+    </div>
+    
+</div>
+<!-- 结束新建文集div块 -->
+
+<!-- 新建空间div块：已按「只用文集分类」方案移除 -->
+
+<script src="{% static 'iconFont/iconfont.js' %}?version={{mrdoc_version}}"></script>
+<script src="{% static 'jquery/3.5.0/jquery.min.js' %}"></script>
+<script src="{% static 'layui/layui.js' %}?version={{mrdoc_version}}"></script>
+{% block custom_script %}
+    <script>
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+        });
+        var layer = layui.layer;
+        var form = layui.form;
+
+        // ===== 登录态与通用工具 =====
+        var XJY_AUTH = {% if request.user.is_authenticated %}true{% else %}false{% endif %};
+        var XJY_LOGIN_URL = "{% url 'login' %}";
+        // 未登录则跳转登录页并返回 true
+        function xjyNeedLogin(){
+            if(!XJY_AUTH){ window.location.href = XJY_LOGIN_URL; return true; }
+            return false;
+        }
+        // 占位提示（后端暂无对应数据/接口的功能）
+        function xjyComing(msg){ layer.msg(msg || '功能开发中'); }
+        // 需要登录的占位功能
+        function xjyComingAuth(msg){ if(xjyNeedLogin()){ return; } xjyComing(msg); }
+        // 需要登录的跳转
+        function xjyGoAuth(url){ if(xjyNeedLogin()){ return; } window.location.href = url; }
+        // 关闭所有浮层（头像菜单/通知/筛选下拉）
+        function xjyClosePops(){
+            $('#xjyAvatarMenu, #xjyBellPop, .xjy-fpop').hide();
+            $('.xjy-avatar-wrap > .xjy-avatar').removeClass('on');
+        }
+        $(document).on('click', xjyClosePops);
+
+        // ===== 头像下拉菜单 =====
+        function xjyToggleMenu(e){
+            e.stopPropagation();
+            var $m = $('#xjyAvatarMenu');
+            var open = $m.is(':visible');
+            xjyClosePops();
+            if(!open){
+                $m.show();
+                $('.xjy-avatar-wrap > .xjy-avatar').addClass('on');
+            }
+        }
+        // 退出登录
+        function xjyLogout(){
+            $.ajax({
+                url:"{% url 'logout' %}",
+                method:'post',
+                success:function(r){
+                    if(r.status){ window.location.href = '/'; }
+                    else { layer.msg('注销失败'); }
+                },
+                error:function(){ layer.msg('注销失败'); }
+            });
+        }
+
+        // ===== 通知铃铛：后端无通知系统，诚实展示空态浮层 =====
+        function xjyBell(e){
+            e.stopPropagation();
+            if(xjyNeedLogin()){ return; }
+            var $p = $('#xjyBellPop');
+            var open = $p.is(':visible');
+            xjyClosePops();
+            if(!open){ $p.show(); }
+        }
+
+        // ===== AI 写作 / AI 帮你写：优先触发页面已有的 AI 悬浮按钮，没有则跳 AI 聊天页 =====
+        function xjyOpenAI(){
+            var bubble = document.getElementById('chat-bubble-btn');
+            if(bubble){
+                bubble.click();
+                return;
+            }
+            if(xjyNeedLogin()){ return; }
+            window.location.href = "{% url 'chat_page' %}";
+        }
+
+        // ===== 知识库分组：点击分类名展开/收起 =====
+        function xjyToggleCat(el){
+            $(el).toggleClass('open').next('.xjy-kb-cat-list').toggle();
+        }
+        // ===== 「更多」：展开全部分类并显示每组超出的文集；再点收起 =====
+        function xjyMore(){
+            var $kb = $('.xjy-kb');
+            var $cats = $kb.find('.xjy-kb-cat');
+            if(!$cats.length){ layer.msg('暂无知识库'); return; }
+            if($kb.hasClass('show-all')){
+                $kb.removeClass('show-all');
+                $cats.removeClass('open').next('.xjy-kb-cat-list').hide();
+                $('.xjy-more .more-txt').text('更多');
+            }else{
+                $kb.addClass('show-all');
+                $cats.addClass('open').next('.xjy-kb-cat-list').show();
+                $('.xjy-more .more-txt').text('收起');
+            }
+        }
+
+        // ===== 文档分段 Tab =====
+        // 编辑过：直接用页面内 recent_docs；浏览过/我点赞的/我评论过：走后端接口拉数据
+        var xjyTabCache = {};
+        var xjyCurTab = 'edited';
+        // 页面加载时把服务器渲染的「编辑过」列表快照进缓存，供切回时恢复
+        (function(){
+            var rows = [];
+            $('.xjy-row').each(function(){
+                rows.push({
+                    id: $(this).find('a').attr('href').replace(/\D+/g,''),
+                    name: $(this).find('a').attr('title') || $(this).find('a').text(),
+                    pro_id: $(this).attr('data-pro'),
+                    author: $(this).attr('data-author'),
+                    date: $(this).find('.date').text(),
+                    pro_name: ($(this).find('.meta').text().split(' / ')[1] || '')
+                });
+            });
+            xjyTabCache['edited'] = rows;
+        })();
+        function xjyEsc(s){
+            return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+        function xjyTabRow(d){
+            return '<div class="xjy-row" data-pro="' + xjyEsc(d.pro_id) + '" data-author="' + xjyEsc(d.author) + '">'
+                + '<div class="doc"><i class="iconfont mrdoc-icon-wendang"></i>'
+                + '<a href="/doc/' + xjyEsc(d.id) + '/" title="' + xjyEsc(d.name) + '">' + xjyEsc(d.name) + '</a></div>'
+                + '<div class="meta">' + xjyEsc(d.author) + ' / ' + xjyEsc(d.pro_name) + '</div>'
+                + '<div class="date">' + xjyEsc(d.date) + '</div></div>';
+        }
+        function xjyRenderTab(tab, data){
+            var html = '';
+            if(!data || data.length === 0){
+                html = '<div class="xjy-empty">暂无文档</div>';
+            }else{
+                for(var i=0;i<data.length;i++){ html += xjyTabRow(data[i]); }
+            }
+            $('.xjy-list').html(html);
+            // 重建「创建者」下拉选项
+            var seen = {};
+            var $pop = $('#xjyFpopAuthor');
+            $pop.find('.xjy-fopt:not([data-val=""])').remove();
+            $('.xjy-row').each(function(){
+                var a = String($(this).attr('data-author') || '');
+                if(a && !seen[a]){
+                    seen[a] = 1;
+                    $pop.append($('<div class="xjy-fopt"></div>').attr('data-val', a).text(a));
+                }
+            });
+            xjyFilterState = {pro: '', author: ''};
+            $('.xjy-filter .xjy-fopt').removeClass('sel');
+            $('.xjy-filter .xjy-fopt[data-val=""]').addClass('sel');
+            $('.xjy-filter .flabel').each(function(){ $(this).text($(this).closest('.xjy-filter').data('label')); });
+            $('.xjy-filter').removeClass('active');
+            xjyApplyFilter();
+        }
+        $("#xjy-tabs").on("click", ".xjy-tab", function(){
+            var tab = $(this).data("tab");
+            if(tab === xjyCurTab && $(this).hasClass('active')){ return; }
+            $(this).addClass("active").siblings().removeClass("active");
+            xjyCurTab = tab;
+            if(tab === 'edited'){
+                xjyRenderTab('edited', xjyTabCache['edited'] || []);
+                return;
+            }
+            if(xjyNeedLogin()){ return; }
+            // 每次点击都实时拉取（数据会随点赞/评论/浏览变化，不能缓存）
+            var loadIdx = layer.load(1);
+            $.ajax({
+                url: '/my_doc_tab/',
+                type: 'get',
+                data: {tab: tab},
+                dataType: 'json',
+                cache: false,
+                success: function(r){
+                    layer.close(loadIdx);
+                    if(r.status){
+                        xjyRenderTab(tab, r.data || []);
+                    }else{
+                        layer.msg('数据加载失败');
+                    }
+                },
+                error: function(){
+                    layer.close(loadIdx);
+                    layer.msg('数据加载异常');
+                }
+            });
+        });
+
+        // ===== 文档列表筛选（纯前端过滤）：归属 / 创建者 / 类型 =====
+        var xjyFilterState = {pro: '', author: ''};
+        function xjyApplyFilter(){
+            var shown = 0;
+            var $rows = $('.xjy-row');
+            $rows.each(function(){
+                var ok = (!xjyFilterState.pro || String($(this).attr('data-pro')) === xjyFilterState.pro) &&
+                         (!xjyFilterState.author || String($(this).attr('data-author')) === xjyFilterState.author);
+                $(this).toggle(ok);
+                if(ok){ shown++; }
+            });
+            $('#xjy-filter-empty').toggle(shown === 0 && $rows.length > 0);
+        }
+        // 「创建者」选项来自当前列表中出现过的用户名（去重）
+        (function(){
+            var seen = {};
+            var $pop = $('#xjyFpopAuthor');
+            $('.xjy-row').each(function(){
+                var a = String($(this).attr('data-author') || '');
+                if(a && !seen[a]){
+                    seen[a] = 1;
+                    $pop.append($('<div class="xjy-fopt"></div>').attr('data-val', a).text(a));
+                }
+            });
+        })();
+        $('.xjy-filter').on('click', '.xjy-fopt', function(e){
+            e.stopPropagation();
+            var $f = $(this).closest('.xjy-filter');
+            var key = $f.data('key');
+            var val = String($(this).attr('data-val'));
+            $(this).addClass('sel').siblings().removeClass('sel');
+            $f.find('.flabel').text(val === '' ? $f.data('label') : $(this).text());
+            $f.toggleClass('active', val !== '');
+            $(this).closest('.xjy-fpop').hide();
+            if(key === 'pro' || key === 'author'){
+                xjyFilterState[key] = val;
+                xjyApplyFilter();
+            }
+        });
+        $('.xjy-filter').on('click', function(e){
+            e.stopPropagation();
+            if($(e.target).closest('.xjy-fpop').length){ return; }
+            var $pop = $(this).find('.xjy-fpop');
+            var open = $pop.is(':visible');
+            xjyClosePops();
+            if(!open){ $pop.show(); }
+        });
+
+        // ===== 文集设置入口：齿轮按钮直达修改配置页 =====
+        function xjyGoProSettings(ev, proId){
+            ev.preventDefault();
+            ev.stopPropagation();
+            window.location.href = '/modify_pro/?pro_id=' + proId;
+        }
+
+        // ===== Ctrl J 聚焦搜索框 =====
+        $(document).on('keydown', function(e){
+            if((e.ctrlKey || e.metaKey) && (e.key === 'j' || e.key === 'J')){
+                e.preventDefault();
+                $('#search-project').focus().select();
+            }
+        });
+
+        // 动态生成文集图标列表
+        for(var i=1;i<44;i++){
+            var icon_elem = '<div class="layui-iconpicker-icon-item" style="width:20%" data-icon="mrdoc-icon-pro-'+ i +'"><svg class="icon" aria-hidden="true"><use xlink:href="#mrdoc-icon-pro-'+ i +'"></use></svg></div>'
+            $("#mrdoc-project-icon-list").append(icon_elem)
+        }
+        // 点击图标选择按钮
+        $("#project-icon-select").click(function(){
+            $("#project-icon-select-box").toggleClass("hide-project-icon-list")
+        });
+        // 选中图标
+        $(".layui-iconpicker-icon-item").click(function(e){
+            var selected_icon = e.currentTarget.dataset.icon;
+            var selected_icon_svg = '<svg class="icon" aria-hidden="true"><use xlink:href="#'+ selected_icon +'"></use></svg>' 
+            console.log(selected_icon)
+            $("#project-icon-select").html(selected_icon_svg);
+            $("#picon").val(selected_icon);
+            $("#project-icon-select-box").toggleClass("hide-project-icon-list");
+        })
+        
+    </script>
+    <script>
+        // 打开新建二选一弹窗：已按「只用文集分类」方案移除，统一直接新建知识库
+        openCreateChoice = function(){
+            createPro();
+        };
+
+        // 新建空间弹窗：已按「只用文集分类」方案移除
+        openCreateSpaceModal = function(){
+            layer.msg('{% trans "已改用「文集分类」管理分组，请直接新建知识库" %}', {icon: 0});
+        };
+
+        //创建新文集
+        createPro = function () {
+            if(xjyNeedLogin()) return;
+            layer.open({
+                type:1,
+                title:'{% trans "新建文集" %}',
+                area:'400px;',
+                id:'createPro',//配置ID
+                content: $('#create-project-div'),
+                btn:['{% trans "确定" %}','{% trans "创建并添加文档" %}','{% trans "取消" %}'], //添加按钮
+                btnAlign:'c', //按钮居中
+                success:function(){
+                    form.render();
+                    // 重置分类选择器（防止上次新建分类残留）
+                    $('#xjy-cat-new-input').hide();
+                    $('#pcategory-new').val('');
+                    // 确保下拉框存在
+                    if(!$('#pcategory').length){
+                        $('#pcategory').val('');
+                    }
+                },
+                end:function(){
+                    $("li.layui-nav-item dd.layui-this").removeClass("layui-this")
+                },
+                yes:function (index,layero) {
+                    layer.load(1)
+                    var catVal = $('#pcategory').val() || '';
+                    // 如果正在输入新分类，使用新输入的值
+                    if($('#xjy-cat-new-input').is(':visible') && $('#pcategory-new').val()){
+                        catVal = $('#pcategory-new').val();
+                    }
+                    data = {
+                        'picon':$("#picon").val(),
+                        'pname':$("#pname").val(),
+                        'category':catVal,
+                        'desc':$("#desc").val(),
+                        'role':$("input[name=project-role]:checked").val(),
+                    }
+                    $.ajax({
+                        url:"{% url 'create_project' %}",
+                        type:'post',
+                        data:data,
+                        success:function(r){
+                            if(r.status){
+                                window.location.reload();
+                            }else{
+                                //创建失败，提示
+                                // console.log(r)
+                                layer.closeAll('loading')
+                                layer.msg(r.data)
+                            }
+                        },
+                        error:function(){
+                            layer.closeAll('loading')
+                            layer.msg("创建异常")
+                        }
+                    })
+                },
+                btn2:function(index,layero) {
+                    layer.load(1)
+                    var catVal = $('#pcategory').val() || '';
+                    if($('#xjy-cat-new-input').is(':visible') && $('#pcategory-new').val()){
+                        catVal = $('#pcategory-new').val();
+                    }
+                    data = {
+                        'picon':$("#picon").val(),
+                        'pname':$("#pname").val(),
+                        'category':catVal,
+                        'desc':$("#desc").val(),
+                        'role':$("input[name=project-role]:checked").val(),
+                    }
+                    $.ajax({
+                        url:"{% url 'create_project' %}",
+                        type:'post',
+                        data:data,
+                        success:function(r){
+                            if(r.status){
+                                window.location.href = '/create_doc/?pid=' + r.data.id;
+                            }else{
+                                //创建失败，提示
+                                // console.log(r)
+                                layer.closeAll('loading')
+                                layer.msg(r.data)
+                            }
+                        },
+                        error:function(){
+                            layer.closeAll('loading')
+                            layer.msg("创建异常")
+                        }
+                    })
+                },
+            });
+        };
+        // ===== 新建分类交互（新建文集弹窗内） =====
+        $(document).on('click', '#xjy-cat-new-btn', function(){
+            $('#xjy-cat-new-input').show();
+            $('#pcategory-new').focus();
+        });
+        $(document).on('click', '#xjy-cat-new-ok', function(){
+            var v = $.trim($('#pcategory-new').val());
+            if(!v){ layer.msg('请输入分类名'); return; }
+            var $sel = $('#pcategory');
+            if($sel.find('option[value="' + v + '"]').length === 0){
+                $sel.append($('<option>').val(v).text(v));
+            }
+            $sel.val(v);
+            form.render('select');
+            $('#xjy-cat-new-input').hide();
+            $('#pcategory-new').val('');
+            layer.msg('已选择分类：' + v, {icon: 1});
+        });
+        $(document).on('click', '#xjy-cat-new-cancel', function(){
+            $('#xjy-cat-new-input').hide();
+            $('#pcategory-new').val('');
+        });
+        //修改文集
+        modifyPro = function(pro_id){
+            layer.open({
+                type:1,
+                title:'{% trans "修改文集" %}',
+                area:'300px;',
+                id:'createPro',//配置ID
+                content:'<div style="padding: 20px;"><input class="layui-input" type="text" id="pname" style="margin-bottom:10px;" placeholder="输入文集名" required  lay-verify="required"><textarea name="desc" id="desc" placeholder="输入文集简介" class="layui-textarea"></textarea></div>',
+                btn:['{% trans "确定" %}','{% trans "取消" %}'], //添加按钮
+                btnAlign:'c', //按钮居中
+                yes:function (index,layero) {
+                    layer.load(1);
+                    data = {
+                        'pro_id':pro_id,
+                        'name':$("#pname").val(),
+                        'desc':$("#desc").val(),
+                    }
+                    $.post("{% url 'modify_project' %}",data,function(r){
+                        layer.closeAll("loading");
+                        if(r.status){
+                            //修改成功，刷新页面
+                            window.location.reload();
+                        }else{
+                            //修改失败，提示
+                            // console.log(r)
+                            layer.msg(r.data)
+                        }
+                    })
+                },
+            });
+        };
+        //修改用户密码
+        changePwd = function(uid,username){
+            layer.open({
+                type:1,
+                title:'{% trans "修改密码" %}',
+                area:'300px;',
+                id:'changePwd',
+                content:'<div style="padding:10px 0 0 20px;">修改用户[' + username + ']的密码：</div><div style="padding: 20px;"><input class="layui-input" type="password" id="oldPwd" style="margin-bottom:10px;" placeholder="输入原密码" required  lay-verify="required"><input class="layui-input" type="password" id="newPwd1" style="margin-bottom:10px;" placeholder="输入新密码" required  lay-verify="required"><input class="layui-input" type="password" id="newPwd2" placeholder="再次确认新密码" required  lay-verify="required"></div>',
+                btn:['{% trans "确认修改" %}','{% trans "取消" %}'],
+                yes:function (index,layero) {
+                    layer.load(1);
+                    data = {
+                        'old_pwd':$("#oldPwd").val(),
+                        'password':$("#newPwd1").val(),
+                        'password2':$("#newPwd2").val(),
+                    }
+                    $.ajax({
+                        url:"{% url 'modify_pwd' %}",
+                        type:"post",
+                        data:data,
+                        success:function(r){
+                            layer.closeAll('loading');
+                            if(r.status){
+                                //修改成功
+                                window.location.reload();
+                                //layer.close(index)
+                            }else{
+                                //修改失败，提示
+                                //console.log(r)
+                                layer.msg(r.data,{icon:2})
+                            }
+                        },
+                        error:function(){
+                            layer.closeAll('loading');
+                            layer.msg("修改异常",{icon:2})
+                        }
+                    })
+                },
+            })
+        };
+
+    </script>
+    <!-- 统计代码开始 -->
+        {% if debug %}
+        {% else %}
+            {{ static_code | safe }}
+        {% endif %}
+    <!-- 统计代码结束 -->
+    <script>
+        {% if single_tab_link %}
+            $("a").attr("target","_self");
+            $("form").attr("target","_self");
+        {% endif %}
+    </script>
+
+{% endblock %}
+
+{% if ai_status == '1' %}
+    {% include 'app_ai/chatDialog.html' %}
+{% endif %}
+</body>
+</html>

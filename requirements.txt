@@ -1,0 +1,26 @@
+django==4.2.*
+beautifulsoup4==4.12.3
+lxml
+pillow>=10.1
+loguru==0.7.2
+importlib-metadata==8.5.0
+djangorestframework==3.15.2
+requests==2.32.3
+whoosh==2.7.4
+django-haystack==3.4.0
+Markdown==3.7
+jieba==0.42.1
+mammoth>=1.11.0,<2.0
+markdownify==0.13.1
+selenium==4.25.0
+webdriver_manager==4.0.2
+PyYAML==6.0.2
+qiniu==7.14.0
+mysqlclient
+django-cors-headers==4.4.0
+django-filter==24.3
+bleach
+# AI知识库
+openai>=1.40
+numpy
+markdown-it-py==3.0.0

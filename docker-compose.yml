@@ -1,0 +1,15 @@
+version: '3'
+services:
+  mrdoc:
+    container_name: mrdoc
+    image: registry.cn-hangzhou.aliyuncs.com/zmister/mrdoc:v9.7
+    volumes:
+      - /opt/mrdoc:/app/MrDoc
+    ports:
+      - "127.0.0.1:10086:10086"
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    dns:
+      - 8.8.8.8
+      - 114.114.114.114
